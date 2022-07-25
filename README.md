@@ -13,7 +13,7 @@ To be used to analyse and other things on compiled lua scripts
 ## Usages
 
 ### File parser
-The file parser works for all luac compiled files from version 5.0 -> 5.4    
+The file parser works for all luac compiled files from version 5.0 -> 5.3   
 Here is some simple code to read a compiled file:
 ```java
 ...
