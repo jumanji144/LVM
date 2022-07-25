@@ -3,6 +3,8 @@ package me.darknet.lua.file;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class LuaDataStream{
 
@@ -11,6 +13,7 @@ public class LuaDataStream{
 	private int sizeSize;
 	InputStream stream;
 	private boolean LE;
+	private boolean byteSize;
 
 	public LuaDataStream(InputStream stream) {
 		this.stream = stream;
@@ -48,6 +51,16 @@ public class LuaDataStream{
 		return (a2 << 32) | a1;
 	}
 
+	public float readFloat() throws IOException {
+		long bits = readInteger();
+		return Float.intBitsToFloat((int) bits);
+	}
+
+	public double readDouble() throws IOException {
+		long bits = readLong();
+		return Double.longBitsToDouble(bits);
+	}
+
 	public long readSize() throws IOException {
 		return switch (sizeSize) {
 			case 2 -> readShort();
@@ -57,17 +70,32 @@ public class LuaDataStream{
 		};
 	}
 
+	public long readInt() throws IOException {
+		return switch (intSize) {
+			case 1 -> readByte();
+			case 2 -> readShort();
+			case 4 -> readInteger();
+			case 8 -> readLong();
+			default -> throw new IllegalStateException("Unexpected value: " + intSize);
+		};
+	}
+
 	public double readNumber() throws IOException {
 		return switch (numberSize) {
-			//case 4 -> readFloat();
-			//case 8 -> readDouble();
-			case 8 -> 0f;
+			case 4 -> readFloat();
+			case 8 -> readDouble();
 			default -> throw new IllegalStateException("Unexpected value: " + numberSize);
 		};
 	}
 
 	public String readString() throws IOException {
-		int size = this.readInteger();
+		int size;
+		if(byteSize) {
+			size = readByte();
+			if(size == 0xFF) {
+				size = (int) readSize();
+			}
+		}else size = (int) this.readSize();
 		if(size == 0) return "";
 		byte[] bytes = new byte[size];
 		this.readFully(bytes);
@@ -94,4 +122,9 @@ public class LuaDataStream{
 	public void setEndianess(boolean LE) {
 		this.LE = LE;
 	}
+
+	public void setByteSize(boolean byteSize) {
+		this.byteSize = byteSize;
+	}
+
 }
