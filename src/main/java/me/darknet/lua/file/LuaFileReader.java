@@ -66,9 +66,9 @@ public class LuaFileReader implements ConstantTypes {
 				}
 			} else {
 				// endianess
-				if(file.version > 80) file.endianess = stream.readByte();
-				file.intSize = stream.readByte();
-				file.longSize = stream.readByte();
+				file.endianess = stream.readByte();
+				stream.setIntSize(file.intSize = stream.readByte());
+				stream.setSizeSize(file.longSize = stream.readByte());
 				file.instructionSize = stream.readByte();
 				if(file.version == 80) {
 					stream.readByte(); // SIZE_OP
@@ -76,9 +76,15 @@ public class LuaFileReader implements ConstantTypes {
 					stream.readByte(); // SIZE_B
 					stream.readByte(); // SIZE_C
 				}
-				file.numberSize = stream.readByte();
+				stream.setNumberSize(file.numberSize = stream.readByte());
+				stream.setEndianess(file.endianess != 1);
 				if(file.version > 80) file.isNumberIntegral = stream.readByte() != 0;
-				else if(stream.readNumber() != LUA_5_0_VERIFY_NUM) throw new IllegalStateException("Invalid verify data");
+				else {
+					double number = stream.readNumber();
+					// cast to long without conversion
+					if (number != LUA_5_0_VERIFY_NUM)
+						throw new IllegalStateException("Invalid verify data");
+				}
 
 				if(file.version == 82) {
 					byte[] verify = new byte[verifyData.length];
@@ -87,15 +93,7 @@ public class LuaFileReader implements ConstantTypes {
 						throw new IllegalStateException("Invalid verify data");
 					}
 				}
-
-				// update stream
-				stream.setIntSize(file.intSize);
-				stream.setNumberSize(file.numberSize);
-				stream.setSizeSize(file.longSize);
-
 			}
-
-			stream.setEndianess(file.endianess != 1);
 
 			LuaFunctionReader functionReader = new LuaFunctionReader(file, stream);
 			file.function = functionReader.readFunction();

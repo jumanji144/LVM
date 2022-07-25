@@ -95,7 +95,7 @@ public class LuaFunctionReader implements ConstantTypes{
 		if(version != 82) function.setSource(stream.readString());
 		function.setLineDefined(stream.readInteger());
 		if(version > 80) function.setLastLineDefined(stream.readInteger());
-		if(version == 81) function.setNumUps(stream.readByte());
+		if(version < 82) function.setNumUps(stream.readByte());
 		function.setNumParams(stream.readByte());
 		function.setIsVararg(stream.readByte());
 		function.setMaxStackSize(stream.readByte());
@@ -118,6 +118,7 @@ public class LuaFunctionReader implements ConstantTypes{
 
 		if(version == 80) {
 			readConstants(function);
+			readProtos(function);
 			readCode(function);
 		}
 
