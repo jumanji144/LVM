@@ -36,13 +36,6 @@ public class LuaFunctionReader implements ConstantTypes{
 		}
 	}
 
-	public void readAbsoluteLines(LuaFunction function) throws IOException {
-		int n = stream.readInteger();
-		for(int i = 0; i < n; i++) {
-			function.addAbsoluteLine(new AbsoluteLineInfo(stream.readInteger(), stream.readInteger()));
-		}
-	}
-
 	public void readLocals(LuaFunction function) throws IOException {
 		int localCount = stream.readInteger();
 		for(int i = 0; i < localCount; i++) {
@@ -110,14 +103,16 @@ public class LuaFunctionReader implements ConstantTypes{
 		if(version > 80) {
 			readCode(function);
 			readConstants(function);
-			if(version < 83) readProtos(function);
-			readUpvalues(function, false, false);
-			if(version > 82) readProtos(function);
+			if(version > 82) {
+				readUpvalues(function, false, false);
+				readProtos(function);
+			} else {
+				readProtos(function);
+			}
 		}
 
 		if(version == 82) function.setSource(stream.readString());
 		readLines(function);
-		if(version > 83) readAbsoluteLines(function);
 		readLocals(function);
 		readUpvalues(function, version > 81, false);
 

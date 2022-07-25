@@ -24,7 +24,6 @@ public class LuaFunction {
 	private List<Upvalue> upvalues = new ArrayList<>();
 	// DEBUG
 	private List<Integer> lines = new ArrayList<>();
-	private List<AbsoluteLineInfo> absLines = new ArrayList<>(); // 5.3+
 	private List<Local> locals = new ArrayList<>();
 
 	public void addPrototype(LuaFunction readFunction) {
@@ -37,10 +36,6 @@ public class LuaFunction {
 
 	public void addLocal(Local local) {
 		locals.add(local);
-	}
-
-	public void addAbsoluteLine(AbsoluteLineInfo absoluteLine) {
-		absLines.add(absoluteLine);
 	}
 
 	public void addLine(int line) {
@@ -57,10 +52,6 @@ public class LuaFunction {
 
 	public Local getLocal(int index) {
 		return locals.get(index);
-	}
-
-	public AbsoluteLineInfo getAbsoluteLine(int index) {
-		return absLines.get(index);
 	}
 
 	public int getLine(int index) {

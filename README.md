@@ -3,7 +3,7 @@ Lua virtualsation toolset in Java
 
 ## Parts
 - [x] bytecode parsing libary (5.x)
-- [ ] instruction sets
+- [x] instruction sets (DONE: 5.0)
 - [ ] emulation of execution
 - [ ] access of frames and interception
 
