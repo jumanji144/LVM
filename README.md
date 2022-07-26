@@ -24,3 +24,13 @@ LuaFileReader reader = new LuaFileReader(stream);
 LuaFile file = reader.read();
 ```
 
+### Instruction Parser
+```java
+...
+LuaFunction main = file.getFunction();
+InstructionReader reader = new InstructionReader(main);
+List<Instruction> instructions = reader.read();
+// use instructions
+...
+```
+
