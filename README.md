@@ -24,13 +24,17 @@ LuaFileReader reader = new LuaFileReader(stream);
 LuaFile file = reader.read();
 ```
 
-### Instruction Parser
+### Disassembly and intstruction operations
 ```java
 ...
 LuaFunction main = file.getFunction();
-InstructionReader reader = new InstructionReader(main);
-List<Instruction> instructions = reader.read();
-// use instructions
+Disassembler disasm = new Disassembler(main, System.out);
+disasm.disassemble(); // print disassembly to main
+
+// assuming that some function calls get set up in this sample
+ClosureInstruction inst = main.getInstructions().get(0); 
+// get the function referenced by this instruction
+LuaFunction refFunction = inst.getProto();
 ...
 ```
 
