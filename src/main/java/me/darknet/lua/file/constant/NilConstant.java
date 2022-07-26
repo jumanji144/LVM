@@ -6,4 +6,8 @@ public class NilConstant extends Constant {
 		super(TNIL);
 	}
 
+	@Override
+	public String toString() {
+		return "nil";
+	}
 }

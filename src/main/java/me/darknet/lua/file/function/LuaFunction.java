@@ -3,6 +3,7 @@ package me.darknet.lua.file.function;
 import lombok.Getter;
 import lombok.Setter;
 import me.darknet.lua.file.constant.Constant;
+import me.darknet.lua.file.instructions.Instruction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ public class LuaFunction {
 	// DEBUG
 	private List<Integer> lines = new ArrayList<>();
 	private List<Local> locals = new ArrayList<>();
+	private List<Instruction> instructions;
 
 	public void addPrototype(LuaFunction readFunction) {
 		protos.add(readFunction);
@@ -57,6 +59,4 @@ public class LuaFunction {
 	public int getLine(int index) {
 		return lines.get(index);
 	}
-
-
 }

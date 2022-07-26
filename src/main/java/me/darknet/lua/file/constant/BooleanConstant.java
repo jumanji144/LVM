@@ -17,4 +17,9 @@ public class BooleanConstant extends Constant {
 	public int getVariant() {
 		return value ? VTRUE : VFALSE;
 	}
+
+	@Override
+	public String toString() {
+		return "boolean(" + value + ")";
+	}
 }

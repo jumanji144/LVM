@@ -13,4 +13,8 @@ public class NumberConstant extends Constant {
 		return value;
 	}
 
+	@Override
+	public String toString() {
+		return "number(" + value + ")";
+	}
 }

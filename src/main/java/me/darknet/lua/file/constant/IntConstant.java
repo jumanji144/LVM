@@ -13,4 +13,8 @@ public class IntConstant extends Constant {
 		return value;
 	}
 
+	@Override
+	public String toString() {
+		return "int(" + value + ")";
+	}
 }

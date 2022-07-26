@@ -16,6 +16,9 @@ public class ArithmeticInstruction extends Instruction{
 		this.b = b;
 	}
 
+	@Override
+	public String toString() {
+		return getLine() + ": " + getOpcodeName() + " R(" + a + ") & R(" + b + ")" + " := R(" + register + ")";
 
-
+	}
 }

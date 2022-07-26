@@ -13,4 +13,8 @@ public class StringConstant extends Constant {
 		return value;
 	}
 
+	@Override
+	public String toString() {
+		return "string(" + value + ")";
+	}
 }

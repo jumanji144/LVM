@@ -122,6 +122,9 @@ public class LuaFunctionReader implements ConstantTypes{
 			readCode(function);
 		}
 
+		LuaInstructionReader insnReader = new LuaInstructionReader(function);
+		function.setInstructions(insnReader.read());
+
 		return function;
 
 	}
