@@ -62,7 +62,7 @@ public class LuaInstructionReader implements Opcodes {
 				case FORLOOP,
 						TFORLOOP -> new ForLoopInstruction(op,
 								A,
-								opcode == FORLOOP ? Bx : C);
+								op == FORLOOP ? Bx : C);
 				case FORPREP -> new ForPrepInstruction(A, sBx);
 				case SETLIST -> new SetListInstruction(A, B, C);
 				case CLOSE -> new CloseInstruction(A);
@@ -77,5 +77,4 @@ public class LuaInstructionReader implements Opcodes {
 		return output;
 
 	}
-
 }
