@@ -6,18 +6,18 @@ import lombok.Getter;
 public class CallInstruction extends Instruction {
 
 	int register;
-	int nargs;
-	int nresults;
+	int numArgs;
+	int numReturns;
 
-	public CallInstruction(int opcode, int register, int nargs, int nresults) {
+	public CallInstruction(int opcode, int register, int numArgs, int numReturns) {
 		super(opcode);
 		this.register = register;
-		this.nargs = nargs;
-		this.nresults = nresults;
+		this.numArgs = numArgs;
+		this.numReturns = numReturns;
 	}
 
 	@Override
 	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ")(" + getNargs() + ") -> " + getNresults();
+		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ")(" + getNumArgs() + ") -> " + getNumReturns();
 	}
 }
