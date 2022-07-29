@@ -67,6 +67,7 @@ public class LuaInstructionReader implements Opcodes {
 				case SETLIST -> new SetListInstruction(A, B, C);
 				case CLOSE -> new CloseInstruction(A);
 				case CLOSURE -> new ClosureInstruction(A, Bx, function.getPrototype(Bx));
+				case VARARG -> new VarArgInstruction(A, B);
 				default -> null;
 			};
 			if(inst == null) continue;
