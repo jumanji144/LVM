@@ -24,6 +24,7 @@ public class Disassembler {
 
 	private void disassemble(PrintStream out, int level, int index) {
 		out.println(level == 0 ? "function entry " : ("function " + index + ", depth=" + level));
+		out.println("slots: " + function.getMaxStackSize());
 		for (int i = 0; i < function.getUpvalues().size(); i++) {
 			out.println("\tupvalue [" + i + "]: " + function.getUpvalues().get(i));
 		}
