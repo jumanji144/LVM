@@ -5,16 +5,16 @@ import lombok.Getter;
 @Getter
 public class ReturnInstruction extends Instruction {
 	int register;
-	int nreturn;
+	int numReturns;
 
-	public ReturnInstruction(int register, int nreturn) {
+	public ReturnInstruction(int register, int numReturns) {
 		super(RETURN);
 		this.register = register;
-		this.nreturn = nreturn;
+		this.numReturns = numReturns;
 	}
 
 	@Override
 	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ") <- " + getNreturn();
+		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ") <- " + getNumReturns();
 	}
 }
