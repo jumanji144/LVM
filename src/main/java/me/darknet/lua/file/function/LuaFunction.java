@@ -59,4 +59,8 @@ public class LuaFunction {
 	public int getLine(int index) {
 		return lines.get(index);
 	}
+
+	public boolean isVararg() {
+		return isVararg > 0;
+	}
 }
