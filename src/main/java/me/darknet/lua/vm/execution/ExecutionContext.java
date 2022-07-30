@@ -4,8 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.vm.VM;
+import me.darknet.lua.vm.VMException;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
+import me.darknet.lua.vm.error.Error;
+import me.darknet.lua.vm.value.NilValue;
 import me.darknet.lua.vm.value.Value;
 
 @Getter
@@ -16,10 +19,13 @@ public class ExecutionContext {
 	int pc;
 	LuaFunction currentFunction;
 	Closure currentClosure;
+	ExecutionContext caller;
 	boolean returning;
 	Value[] returnValues = new Value[0];
 	Value[] varargs = new Value[0];
 	VM vm;
+	Error currentError;
+	Closure catchFunction;
 
 	public ExecutionContext(VM vm, int registerCount) {
 		this.vm = vm;
@@ -57,5 +63,29 @@ public class ExecutionContext {
 
 	public VM getVM() {
 		return vm;
+	}
+
+	public void throwError(String fmt, Object... args) {
+		currentError = new Error(currentFunction.getSource(), currentFunction.getLine(pc), String.format(fmt, args));
+		throw new VMException(this);
+	}
+
+	public void setReturnValues(Value... values) {
+		returnValues = values;
+	}
+
+	public boolean has(int register) {
+		return registers.length > register;
+	}
+
+	public Value getOrNil(int register) {
+		if(has(register)) {
+			return registers[register];
+		}
+		return NilValue.NIL;
+	}
+
+	public void ret(Value... values) {
+		returnValues = values;
 	}
 }

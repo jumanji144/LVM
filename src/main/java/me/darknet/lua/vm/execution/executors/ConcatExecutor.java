@@ -21,7 +21,8 @@ public class ConcatExecutor implements Executor<ArithmeticInstruction> {
 			try {
 				builder.append(a.asString());
 			} catch(Exception e) {
-				throw new VMException("attempt to concat [" + a + "]", e);
+				ctx.throwError("attempt to concatenate a %s value", a.getType().name().toLowerCase());
+				return;
 			}
 		}
 

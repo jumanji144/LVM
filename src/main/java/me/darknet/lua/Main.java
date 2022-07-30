@@ -5,6 +5,7 @@ import me.darknet.lua.file.LuaFile;
 import me.darknet.lua.file.LuaFileReader;
 import me.darknet.lua.file.util.Disassembler;
 import me.darknet.lua.vm.VM;
+import me.darknet.lua.vm.VMException;
 import me.darknet.lua.vm.execution.ExecutionContext;
 
 import java.io.File;
@@ -23,7 +24,12 @@ public class Main {
 		VM vm = new VM();
 		vm.initialize();
 		System.out.println("Executing... ");
-		ExecutionContext result = vm.getHelper().invoke(luaFile.getFunction(), vm.getGlobal());
+		try {
+			ExecutionContext result = vm.getHelper().invoke(luaFile.getFunction(), vm.getGlobal());
+		} catch (VMException e) {
+			System.out.println(e.getMessage());
+			System.out.println(e.constructStackTrace());
+		}
 	}
 
 }

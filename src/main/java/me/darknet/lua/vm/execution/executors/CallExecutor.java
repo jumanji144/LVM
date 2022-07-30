@@ -69,6 +69,7 @@ public class CallExecutor implements Executor<CallInstruction> {
 
 		}
 
+		ctx2.setCaller(ctx);
 		ctx.getVM().getHelper().invoke(ctx2);
 
 		Value[] returnValues = ctx2.getReturnValues();

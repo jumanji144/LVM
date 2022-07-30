@@ -1,27 +1,35 @@
 package me.darknet.lua.vm;
 
+import me.darknet.lua.file.function.LuaFunction;
+import me.darknet.lua.vm.execution.ExecutionContext;
+
 public class VMException extends RuntimeException{
 
-	public String message;
-	public String details;
+	public ExecutionContext ctx;
 
-	public VMException(String message) {
-		super(message);
-		this.message = message;
+	public VMException(ExecutionContext ctx) {
+		this.ctx = ctx;
 	}
 
-	public VMException(String message, String details) {
-		super(message);
-		this.message = message;
-		this.details = details;
+	public ExecutionContext getCtx() {
+		return ctx;
 	}
 
-	public VMException(String message, Throwable cause) {
-		super(message, cause);
+	@Override
+	public String getMessage() {
+		return ctx.getCurrentError().print();
 	}
 
-	public String getDetails() {
-		return details;
+	public String constructStackTrace() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("lua stack trace:\n");
+		ExecutionContext ctx = this.ctx;
+		String source = ctx.getCurrentError().getSource();
+		while(ctx != null) {
+			LuaFunction function = ctx.getCurrentFunction();
+			sb.append("\t- ").append(source).append(':').append(function.getLine(ctx.getPc())).append("\n");
+			ctx = ctx.getCaller();
+		}
+		return sb.toString();
 	}
-
 }

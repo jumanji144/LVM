@@ -15,7 +15,7 @@ public class LenExecutor implements Executor<UnaryInstruction> {
 		if(a instanceof StringValue st) {
 			ctx.set(instruction.getRegister(), new NumberValue(st.getValue().length()));
 		} else {
-			throw new VMException("attempt get length of [" + a + "]");
+			ctx.throwError("attempt to get length of a %s value", a.getType().name().toLowerCase());
 		}
 	}
 }

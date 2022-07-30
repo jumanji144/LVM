@@ -5,6 +5,7 @@ import me.darknet.lua.file.constant.StringConstant;
 import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.file.instructions.*;
 import me.darknet.lua.vm.data.Closure;
+import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.execution.Executor;
 import me.darknet.lua.vm.execution.executors.*;
@@ -42,6 +43,8 @@ public class Interpreter implements Opcodes {
 		});
 		install(LOADK, new LoadConstantExecutor());
 		install(LOADNIL, (Executor<LoadInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), NilValue.NIL));
+		install(NEWTABLE, (Executor<NewTableInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), new TableValue(new Table())));
+		install(SETTABLE, new SetTableExecutor());
 		install(ADD, new ArithExecutor((a, b) -> new NumberValue(a.asNumber() + b.asNumber())));
 		install(SUB, new ArithExecutor((a, b) -> new NumberValue(a.asNumber() - b.asNumber())));
 		install(MUL, new ArithExecutor((a, b) -> new NumberValue(a.asNumber() * b.asNumber())));
@@ -69,7 +72,7 @@ public class Interpreter implements Opcodes {
 			if (pc < 0 || pc >= instructions.size()) {
 				logger.debug("pc out of bounds: {}", pc);
 				logger.debug("frame: {" + ctx.viewFrame("\t") + "}");
-				throw new VMException("Execution impossible", "pc out of bounds");
+				throw new IllegalStateException("pc out of bounds");
 			}
 
 			Instruction instruction = instructions.get(pc);
@@ -77,11 +80,19 @@ public class Interpreter implements Opcodes {
 			Executor executor = executors.get(instruction.getOpcode());
 			if (executor == null) {
 				logger.error("no executor for instruction: {}, insn=[{}], func={}", OPCODES[instruction.getOpcode()], instruction, fn);
-				throw new VMException("Execution impossible", "no executor for instruction: " + instruction.getOpcode());
+				throw new IllegalStateException("no executor for instruction: " + instruction.getOpcode());
 			}
 			try {
 				// execute the instruction
 				executor.execute(instruction, ctx);
+			} catch (VMException e) {
+				if(ctx.getCurrentError() != null) {
+					if(ctx.getCatchFunction() != null) {
+						ctx.getVM().getHelper().invoke(ctx.getCatchFunction(), new StringValue(ctx.getCurrentError().getMessage()));
+					} else {
+						throw e;
+					}
+				}
 			} catch (Exception e) {
 				logger.debug("frame: {" + ctx.viewFrame("\t") + "}");
 				throw e;
