@@ -76,4 +76,12 @@ ClosureValue value = new ClosureValue(customClosure);
 global.set("customFunction", value);
 ```
 
+#### Instruction overwriting
+It is also possible to overwrite the behaviour of specific instructions entirely
+```java
+vm.getInterpreter().install(Opcodes.MOVE, (Executor<LoadInstruction>) (insn, ctx) -> {
+	System.out.println("Custom instructions");
+});
+```
+
 
