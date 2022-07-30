@@ -4,7 +4,7 @@ Lua virtualsation toolset in Java
 ## Parts
 - [x] bytecode parsing libary (5.x)
 - [x] instruction sets (DONE: 5.1)
-- [ ] emulation of execution
+- [ ] emulation of execution (IN PROGRESS)
 - [ ] access of frames and interception
 
 ## Goals
@@ -37,4 +37,19 @@ ClosureInstruction inst = main.getInstructions().get(0);
 LuaFunction refFunction = inst.getProto();
 ...
 ```
+
+### Virtual machine & code exection
+```java
+// prepare a vm
+VM vm = new VM();
+vm.initialize();
+Table global = ... // prepare global environment
+// execute the main function
+ExecutionContext result = vm.getHelper().invoke(main, global);
+Value val = results.get(0); // get R0
+
+System.out.println(val.asString()); // print R0
+```
+
+
 
