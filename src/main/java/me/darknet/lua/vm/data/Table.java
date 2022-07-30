@@ -50,4 +50,10 @@ public class Table {
 	public Value get(String value) {
 		return table.get(value);
 	}
+
+	public void merge(Table other) {
+		// copy all values from this table into other
+		table.forEach(other::set);
+		array.forEach(other::insert);
+	}
 }

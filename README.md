@@ -43,13 +43,34 @@ LuaFunction refFunction = inst.getProto();
 // prepare a vm
 VM vm = new VM();
 vm.initialize();
-Table global = ... // prepare global environment
 // execute the main function
-ExecutionContext result = vm.getHelper().invoke(main, global);
+ExecutionContext result = vm.getHelper().invoke(main, vm.getGlobal());
 Value val = results.get(0); // get R0
 
 System.out.println(val.asString()); // print R0
 ```
 
+#### Function overwriting
+```java
+// get the vm libraries
+Libraries libs = vm.getLibraries();
+Library base = libs.getTop(); // get the top library (the base library)
+// choose a method (in this case 'print')
+// then provide a new method to execute
+base.set("print", (ctx) -> {
+    System.out.println("Custom print call!");	
+});
+
+// or during/before execution access the global table and overwrite functions directly
+Table global = vm.getGlobal();
+// first define a new Closure
+Closure customClosure = new Closure((ctx) -> {   
+	System.out.println("Intercepted call!");
+});
+// wrap in ClosureValue
+ClosureValue value = new ClosureValue(customClosure);        
+// set new closure
+global.set("customFunction", value);
+```
 
 
