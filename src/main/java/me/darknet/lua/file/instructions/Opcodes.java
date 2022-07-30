@@ -19,6 +19,7 @@ int POS_A =         (POS_OP + SIZE_OP);
 int POS_C =         (POS_A + SIZE_A); // 9 bits
 int POS_B =         (POS_C + SIZE_C);
 int POS_Bx =        POS_C; // 18 bits
+int BITK = 			(1 << (SIZE_B - 1));
 
 static int getOpcode(int i) {
 	return i >> POS_OP & MASK1(SIZE_OP, 0);
@@ -44,6 +45,14 @@ static int getArgsBx(int i) {
 	return getArgBx(i) - Integer.MAX_VALUE;
 }
 
+static boolean isK(int i) {
+	return (i & BITK) != 0;
+}
+
+static int getK(int i) {
+	return i & ~BITK;
+}
+
 // R(A) := ?
 int MOVE = 		0x00; // A B | R(A) := R(B)
 int LOADK = 	0x01; // A Bx | R(A) := Kst(Bx)
@@ -56,7 +65,7 @@ int GETTABLE = 	0x06; // A B C | R(A) := R(B)[R(C)]
 // ? = R(A)
 int SETGLOBAL = 0x07; // A Bx | Gbl[Kst(Bx)] := R(A)
 int SETUPVAL = 	0x08; // A B | UpValue[B] := R(A)
-int SETTABLE = 	0x09; // A B C | R(A)[R(B)] := R(C)
+int SETTABLE = 	0x09; // A B C | R(A)[RK(B)] := RK(C)
 
 int NEWTABLE = 	0x0A; // A B C | R(A) := {} (size = B,C)
 
