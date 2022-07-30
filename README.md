@@ -25,6 +25,7 @@ LuaFile file = reader.read();
 ```
 
 ### Disassembly and intstruction operations
+Disassembly gives direct insight into the progarms behaviour and operations
 ```java
 ...
 LuaFunction main = file.getFunction();
@@ -39,6 +40,7 @@ LuaFunction refFunction = inst.getProto();
 ```
 
 ### Virtual machine & code exection
+The Virtual machine allows for virtualizing and executing compiled bytecode allowing for full static analysis of lua binaries
 ```java
 // prepare a vm
 VM vm = new VM();
@@ -51,6 +53,7 @@ System.out.println(val.asString()); // print R0
 ```
 
 #### Function overwriting
+In the vm it is possible to overwrite functions to give control what these do, this includes library functions
 ```java
 // get the vm libraries
 Libraries libs = vm.getLibraries();
