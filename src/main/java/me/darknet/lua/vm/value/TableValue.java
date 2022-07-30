@@ -1,7 +1,9 @@
 package me.darknet.lua.vm.value;
 
+import lombok.Getter;
 import me.darknet.lua.vm.data.Table;
 
+@Getter
 public class TableValue implements Value{
 
 	Table table;

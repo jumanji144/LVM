@@ -1,5 +1,6 @@
 package me.darknet.lua.vm.data;
 
+import lombok.Getter;
 import me.darknet.lua.vm.value.Value;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Map;
 /**
  * Lua table
  */
+@Getter
 public class Table {
 
 	Map<String, Value> table = new HashMap<>();
@@ -51,9 +53,14 @@ public class Table {
 		return table.get(value);
 	}
 
+	public boolean has(String key) {
+		return table.containsKey(key);
+	}
+
 	public void merge(Table other) {
 		// copy all values from this table into other
 		table.forEach(other::set);
 		array.forEach(other::insert);
 	}
+
 }

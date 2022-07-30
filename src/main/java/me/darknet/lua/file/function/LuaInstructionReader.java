@@ -37,7 +37,7 @@ public class LuaInstructionReader implements Opcodes {
 				case GETTABLE -> new GetTableInstruction(A, B, C);
 				case SETGLOBAL -> new SetGlobalInstruction(A, Bx, function.getConstants().get(Bx));
 				case SETUPVAL -> new SetInstruction(op, A, B);
-				case SETTABLE -> new SetTableInstruction(A, B, C);
+				case SETTABLE -> new SetTableInstruction(A, B, C, function.getConstants().get(B), function.getConstants().get(C));
 				case NEWTABLE -> new NewTableInstruction(A, B, C);
 				case SELF -> new SelfInstruction(A, B, C);
 				case ADD,
