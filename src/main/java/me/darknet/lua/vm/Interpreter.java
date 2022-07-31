@@ -6,6 +6,7 @@ import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.file.instructions.*;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
+import me.darknet.lua.vm.error.Error;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.execution.Executor;
 import me.darknet.lua.vm.execution.executors.*;
@@ -88,7 +89,9 @@ public class Interpreter implements Opcodes {
 			} catch (VMException e) {
 				if(ctx.getCurrentError() != null) {
 					if(ctx.getCatchFunction() != null) {
-						ctx.getVM().getHelper().invoke(ctx.getCatchFunction(), new StringValue(ctx.getCurrentError().getMessage()));
+						Error error = ctx.getCurrentError();
+						ctx.getVM().getHelper().invoke(ctx.getCatchFunction(), new StringValue(error.print()));
+						return;
 					} else {
 						throw e;
 					}

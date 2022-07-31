@@ -47,6 +47,21 @@ public class ExecutionContext {
 				sb.append(indent).append("\t").append(i).append(": ").append(varargs[i]).append("\n");
 			}
 		}
+		sb.append(indent).append("currentfunction: ").append(currentFunction).append("\n");
+		sb.append(indent).append(viewStacktrace());
+		return sb.toString();
+	}
+
+	public String viewStacktrace() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("lua stack trace:\n");
+		ExecutionContext ctx = this;
+		while(ctx != null) {
+			LuaFunction function = ctx.getCurrentFunction();
+			if(function == null) sb.append("\t- ").append(ctx.getCurrentClosure().getJavaFunction()).append("\n");
+			else sb.append("\t- ").append(function.getSource()).append(':').append(function.getLine(ctx.getPc())).append("\n");
+			ctx = ctx.getCaller();
+		}
 		return sb.toString();
 	}
 
@@ -66,8 +81,21 @@ public class ExecutionContext {
 	}
 
 	public void throwError(String fmt, Object... args) {
-		currentError = new Error(currentFunction.getSource(), currentFunction.getLine(pc), String.format(fmt, args));
+		currentError = new Error(findSource(), currentFunction.getLine(pc), String.format(fmt, args));
 		throw new VMException(this);
+	}
+
+	public String findSource() {
+		ExecutionContext ctx = this;
+		while(ctx != null) {
+			LuaFunction function = ctx.getCurrentFunction();
+			if(function != null) {
+				String source = function.getSource();
+				if(!source.isEmpty()) return source;
+			}
+			ctx = ctx.getCaller();
+		}
+		return "";
 	}
 
 	public void setReturnValues(Value... values) {
