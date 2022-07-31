@@ -25,7 +25,7 @@ LuaFile file = reader.read();
 ```
 
 ### Disassembly and intstruction operations
-Disassembly gives direct insight into the progarms behaviour and operations
+Disassembly gives direct insight into the programs behaviour and operations
 ```java
 ...
 LuaFunction main = file.getFunction();
