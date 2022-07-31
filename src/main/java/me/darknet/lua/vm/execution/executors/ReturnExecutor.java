@@ -11,10 +11,11 @@ import me.darknet.lua.vm.value.Value;
 public class ReturnExecutor implements Executor<ReturnInstruction> {
 	@Override
 	public void execute(ReturnInstruction instruction, ExecutionContext ctx) {
-		Value[] returnValues = new Value[instruction.getNumReturns() - 1];
-		for(int i = 0; i < returnValues.length; i++) {
-			returnValues[i] = ctx.get(instruction.getRegister() + i);
-		}
+		int amount = instruction.getNumReturns() == 0 ?
+				ctx.getRegisters().length - instruction.getRegister()
+				: instruction.getNumReturns() - 1;
+		Value[] returnValues = new Value[amount];
+		System.arraycopy(ctx.getRegisters(), instruction.getRegister(), returnValues, 0, returnValues.length);
 		ctx.setReturnValues(returnValues);
 		ctx.setReturning(true);
 	}
