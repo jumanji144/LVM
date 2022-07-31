@@ -17,7 +17,7 @@ public class MethodConsumer<T> implements Consumer<T> {
 
 	public void accept(T t) {
 		try {
-			method.invoke(instance, t);
+			method.invoke(t);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

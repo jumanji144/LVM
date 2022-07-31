@@ -43,7 +43,7 @@ public class Library {
 	public void collect() {
 		for (Method declaredMethod : getClass().getDeclaredMethods()) {
 			if(declaredMethod.getName().startsWith("lua_")) {
-				methods.put(declaredMethod.getName().substring(4), new MethodConsumer<>(declaredMethod));
+				methods.put(declaredMethod.getName().substring(4), new MethodConsumer<>(this, declaredMethod));
 			}
 		}
 	}
