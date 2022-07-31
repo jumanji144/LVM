@@ -2,14 +2,19 @@ package me.darknet.lua.vm.execution;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.darknet.lua.file.constant.Constant;
 import me.darknet.lua.file.function.LuaFunction;
+import me.darknet.lua.file.instructions.Opcodes;
 import me.darknet.lua.vm.VM;
 import me.darknet.lua.vm.VMException;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.error.Error;
+import me.darknet.lua.vm.util.ConstantConversion;
 import me.darknet.lua.vm.value.NilValue;
 import me.darknet.lua.vm.value.Value;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -71,6 +76,10 @@ public class ExecutionContext {
 
 	public Value get(int register) {
 		return registers[register];
+	}
+	public Value getKRegister(int register) {
+		List<Constant> constants = currentFunction.getConstants();
+		return Opcodes.isK(register) ? ConstantConversion.toValue(constants.get(Opcodes.getK(register))) : get(register);
 	}
 	public Table getEnv() {
 		return currentClosure.getEnv();

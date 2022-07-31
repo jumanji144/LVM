@@ -23,13 +23,8 @@ public class ArithExecutor implements Executor<ArithmeticInstruction> {
 
 	@Override
 	public void execute(ArithmeticInstruction instruction, ExecutionContext ctx) {
-		List<Constant> constants = ctx.getCurrentFunction().getConstants();
-		Value a = Opcodes.isK(instruction.getA()) ?
-				ConstantConversion.toValue(constants.get(Opcodes.getK(instruction.getA()))) :
-				ctx.get(instruction.getA());
-		Value b = Opcodes.isK(instruction.getB()) ?
-				ConstantConversion.toValue(constants.get(Opcodes.getK(instruction.getB()))) :
-				ctx.get(instruction.getB());
+		Value a = ctx.getKRegister(instruction.getA());
+		Value b = ctx.getKRegister(instruction.getB());
 		try {
 			Value result = op.apply(a, b);
 			ctx.set(instruction.getRegister(), result);

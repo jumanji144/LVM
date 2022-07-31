@@ -10,17 +10,11 @@ public class SetTableInstruction extends Instruction{
 	int keyRegister;
 	int valueRegister;
 
-	Constant key;
-	Constant value;
-
-
-	public SetTableInstruction(int register, int keyRegister, int valueRegister, Constant key, Constant value) {
+	public SetTableInstruction(int register, int keyRegister, int valueRegister) {
 		super(SETTABLE);
 		this.register = register;
 		this.keyRegister = keyRegister;
 		this.valueRegister = valueRegister;
-		this.key = key;
-		this.value = value;
 	}
 
 	public int getRegister() {
