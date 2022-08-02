@@ -6,10 +6,10 @@ import lombok.Getter;
 public class CompareInstruction extends Instruction {
 
 	int register;
-	int a;
-	int b;
+	Argument a;
+	Argument b;
 
-	public CompareInstruction(int opcode, int register, int a, int b) {
+	public CompareInstruction(int opcode, int register, Argument a, Argument b) {
 		super(opcode);
 		this.register = register;
 		this.a = a;

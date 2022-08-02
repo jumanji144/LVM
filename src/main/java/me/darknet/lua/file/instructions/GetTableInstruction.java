@@ -7,9 +7,9 @@ public class GetTableInstruction extends Instruction {
 
 	int register;
 	int table;
-	int index;
+	Argument index;
 
-	public GetTableInstruction(int register, int table, int index) {
+	public GetTableInstruction(int register, int table, Argument index) {
 		super(GETTABLE);
 		this.register = register;
 		this.table = table;

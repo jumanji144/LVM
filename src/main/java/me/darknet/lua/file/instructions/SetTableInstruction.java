@@ -7,14 +7,14 @@ import me.darknet.lua.file.constant.Constant;
 public class SetTableInstruction extends Instruction{
 
 	int register;
-	int keyRegister;
-	int valueRegister;
+	Argument key;
+	Argument value;
 
-	public SetTableInstruction(int register, int keyRegister, int valueRegister) {
+	public SetTableInstruction(int register, Argument key, Argument value) {
 		super(SETTABLE);
 		this.register = register;
-		this.keyRegister = keyRegister;
-		this.valueRegister = valueRegister;
+		this.key = key;
+		this.value = value;
 	}
 
 	public int getRegister() {

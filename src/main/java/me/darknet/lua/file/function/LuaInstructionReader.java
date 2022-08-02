@@ -34,26 +34,26 @@ public class LuaInstructionReader implements Opcodes {
 				case LOADK -> new LoadConstantInstruction(op, A, Bx, function.getConstants().get(Bx));
 				case GETGLOBAL -> new GetGlobalInstruction(A, Bx, function.getConstants().get(Bx));
 				case LOADBOOL -> new LoadBoolInstruction(A, B, C);
-				case GETTABLE -> new GetTableInstruction(A, B, C);
+				case GETTABLE -> new GetTableInstruction(A, B, argument(C));
 				case SETGLOBAL -> new SetGlobalInstruction(A, Bx, function.getConstants().get(Bx));
 				case SETUPVAL -> new SetInstruction(op, A, B);
-				case SETTABLE -> new SetTableInstruction(A, B, C);
+				case SETTABLE -> new SetTableInstruction(A, argument(B), argument(C));
 				case NEWTABLE -> new NewTableInstruction(A, B, C);
-				case SELF -> new SelfInstruction(A, B, C);
+				case SELF -> new SelfInstruction(A, B, argument(C));
 				case ADD,
 						SUB,
 						MUL,
 						DIV,
 						MOD,
 						POW,
-						CONCAT -> new ArithmeticInstruction(op, A, B, C);
+						CONCAT -> new ArithmeticInstruction(op, A, argument(B), argument(C));
 				case UNM,
 						NOT,
 						LEN -> new UnaryInstruction(op, A, B);
 				case JMP -> new JumpInstruction(Bx);
 				case EQ,
 						LT,
-						LE -> new CompareInstruction(op, A, B, C);
+						LE -> new CompareInstruction(op, A, argument(B), argument(C));
 				case TEST -> new TestInstruction(A, C);
 				case TESTSET -> new TestSetInstruction(A, B, C);
 				case CALL,
@@ -76,6 +76,14 @@ public class LuaInstructionReader implements Opcodes {
 		}
 
 		return output;
+	}
 
+	public Argument argument(int arg) {
+		if(Opcodes.isK(arg)) {
+			int masked = Opcodes.getK(arg);
+			return new Argument(function.getConstants().get(masked));
+		} else {
+			return new Argument(arg);
+		}
 	}
 }
