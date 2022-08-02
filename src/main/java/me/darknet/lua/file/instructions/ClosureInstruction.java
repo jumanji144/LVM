@@ -17,7 +17,7 @@ public class ClosureInstruction extends Instruction {
 	}
 
 	@Override
-	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ") <- func(" + getProto() + ")";
+	public String print() {
+		return getOpcodeName() + " R(" + getRegister() + ") <- func(" + getProto() + ")";
 	}
 }

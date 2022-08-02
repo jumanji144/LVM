@@ -25,4 +25,8 @@ public class Instruction implements Opcodes{
 		return Opcodes.OPCODES[opcode];
 	}
 
+	public String print() {
+		return getOpcodeName();
+	}
+
 }

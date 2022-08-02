@@ -14,7 +14,7 @@ public class SetGlobalInstruction extends SetInstruction{
 	}
 
 	@Override
-	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " GLOBAL[K(" + getTarget() + ") [" + getConstant() + "]] := " + "R(" + getRegister() + ")";
+	public String print() {
+		return getOpcodeName() + " GLOBAL[K(" + getTarget() + ") [" + getConstant() + "]] := " + "R(" + getRegister() + ")";
 	}
 }

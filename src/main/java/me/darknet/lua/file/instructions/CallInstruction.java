@@ -17,7 +17,7 @@ public class CallInstruction extends Instruction {
 	}
 
 	@Override
-	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ")(" + getNumArgs() + ") -> " + getNumReturns();
+	public String print() {
+		return getOpcodeName() + " R(" + getRegister() + ")(" + getNumArgs() + ") -> " + getNumReturns();
 	}
 }

@@ -8,7 +8,7 @@ public class GetGlobalInstruction extends LoadConstantInstruction{
 	}
 
 	@Override
-	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ") := GLOBAL[K(" + getTarget() + ") [" + getConstant() + "]]";
+	public String print() {
+		return getOpcodeName() + " R(" + getRegister() + ") := GLOBAL[K(" + getTarget() + ") [" + getConstant() + "]]";
 	}
 }

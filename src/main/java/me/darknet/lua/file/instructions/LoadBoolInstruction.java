@@ -21,7 +21,7 @@ public class LoadBoolInstruction extends LoadInstruction{
 	}
 
 	@Override
-	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ") := " + getValue() + ((getCondition() == 1) ? " skip next" : "");
+	public String print() {
+		return getOpcodeName() + " R(" + getRegister() + ") := " + getValue() + ((getCondition() == 1) ? " skip next" : "");
 	}
 }

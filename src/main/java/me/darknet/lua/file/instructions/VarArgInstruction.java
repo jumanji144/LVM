@@ -15,7 +15,7 @@ public class VarArgInstruction extends Instruction {
 	}
 
 	@Override
-	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " R(" + register + ")... -> " + limit + " := varargs";
+	public String print() {
+		return getOpcodeName() + " R(" + register + ")... -> " + limit + " := varargs";
 	}
 }

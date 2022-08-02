@@ -15,7 +15,7 @@ public class SetInstruction extends Instruction{
 	}
 
 	@Override
-	public String toString() {
+	public String print() {
 		return getLine() + ": "  + getOpcodeName() + " " + getTarget() + " := R(" + getRegister() + ")";
 	}
 }

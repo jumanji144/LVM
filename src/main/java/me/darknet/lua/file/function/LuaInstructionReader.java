@@ -45,8 +45,8 @@ public class LuaInstructionReader implements Opcodes {
 						MUL,
 						DIV,
 						MOD,
-						POW,
-						CONCAT -> new ArithmeticInstruction(op, A, argument(B), argument(C));
+						POW -> new ArithmeticInstruction(op, A, argument(B), argument(C));
+				case CONCAT -> new ConcatInstruction(A, B, C);
 				case UNM,
 						NOT,
 						LEN -> new UnaryInstruction(op, A, B);

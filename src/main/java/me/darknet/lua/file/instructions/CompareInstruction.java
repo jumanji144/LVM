@@ -17,7 +17,7 @@ public class CompareInstruction extends Instruction {
 	}
 
 	@Override
-	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " " + getRegister() + " := R(" + getA() + ") cmp R(" + getB() + ")";
+	public String print() {
+		return getOpcodeName() + " " + getRegister() + " := R(" + getA() + ") cmp R(" + getB() + ")";
 	}
 }

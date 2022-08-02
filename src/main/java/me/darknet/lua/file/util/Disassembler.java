@@ -30,7 +30,7 @@ public class Disassembler {
 		}
 		for (Instruction instruction : function.getInstructions()) {
 			out.print("\t");
-			out.println(instruction.toString());
+			out.println(instruction.getLine() + ": " + instruction.print());
 		}
 		out.println();
 		for (int i = 0; i < function.getProtos().size(); i++) {

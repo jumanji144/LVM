@@ -27,7 +27,7 @@ public class LoadInstruction extends Instruction{
 	}
 
 	@Override
-	public String toString() {
+	public String print() {
 		return getLine() + ": "  + getOpcodeName() + " R(" + getRegister() + ") := " + getTarget();
 	}
 }

@@ -14,7 +14,7 @@ public class LoadConstantInstruction extends LoadInstruction {
 	}
 
 	@Override
-	public String toString() {
-		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ") := K(" + getTarget() + ") [" + constant.toString() + "]";
+	public String print() {
+		return getOpcodeName() + " R(" + getRegister() + ") := K(" + getTarget() + ") [" + constant.toString() + "]";
 	}
 }
