@@ -7,7 +7,7 @@ import me.darknet.lua.vm.util.ConstantConversion;
 
 public class LoadConstantExecutor implements Executor<LoadConstantInstruction> {
 	@Override
-	public void execute(LoadConstantInstruction instruction, ExecutionContext ctx) {
-		ctx.set(instruction.getRegister(), ConstantConversion.toValue(instruction.getConstant()));
+	public void execute(LoadConstantInstruction inst, ExecutionContext ctx) {
+		ctx.set(inst.getRegister(), ConstantConversion.toValue(inst.getConstant()));
 	}
 }

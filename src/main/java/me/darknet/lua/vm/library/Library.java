@@ -8,18 +8,18 @@ import me.darknet.lua.vm.util.MethodConsumer;
 import me.darknet.lua.vm.value.ClosureValue;
 import me.darknet.lua.vm.value.Value;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Getter
 public class Library {
 
 	private String name;
 	private String globalName;
-	private Map<String, Consumer<ExecutionContext>> methods = new HashMap<>();
+	private Map<String, Function<ExecutionContext, Integer>> methods = new HashMap<>();
 	private Map<String, Value> constants = new HashMap<>();
 
 	public Library(String name) {
@@ -32,7 +32,7 @@ public class Library {
 		this.globalName = globalName;
 	}
 
-	public void set(String name, Consumer<ExecutionContext> ctx) {
+	public void set(String name, Function<ExecutionContext, Integer> ctx) {
 		methods.put(name, ctx);
 	}
 
@@ -43,7 +43,13 @@ public class Library {
 	public void collect() {
 		for (Method declaredMethod : getClass().getDeclaredMethods()) {
 			if(declaredMethod.getName().startsWith("lua_")) {
-				methods.put(declaredMethod.getName().substring(4), new MethodConsumer<>(this, declaredMethod));
+				methods.put(declaredMethod.getName().substring(4), (ctx) -> {
+					try {
+						return (int) declaredMethod.invoke(this, ctx);
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				});
 			}
 		}
 	}

@@ -2,7 +2,7 @@ package me.darknet.lua.vm.data;
 
 import lombok.Getter;
 import me.darknet.lua.file.function.LuaFunction;
-import me.darknet.lua.file.function.Upvalue;
+import me.darknet.lua.vm.Interpreter;
 import me.darknet.lua.vm.execution.ExecutionContext;
 
 import java.util.function.Consumer;
@@ -16,14 +16,14 @@ public class Closure {
 
 	Table env;
 	LuaFunction luaFunction;
-	Consumer<ExecutionContext> javaFunction;
+	Function<ExecutionContext, Integer> javaFunction;
 
 	public Closure(LuaFunction function, Table env) {
 		this.luaFunction = function;
 		this.env = env;
 	}
 
-	public Closure(Consumer<ExecutionContext> javaFunction, Table env) {
+	public Closure(Function<ExecutionContext, Integer> javaFunction, Table env) {
 		this.javaFunction = javaFunction;
 		this.env = env;
 	}

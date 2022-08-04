@@ -1,18 +1,17 @@
 package me.darknet.lua.vm.execution.executors;
 
-import me.darknet.lua.file.instructions.ArithmeticInstruction;
+import me.darknet.lua.file.instructions.ConcatInstruction;
 import me.darknet.lua.vm.execution.ExecutionContext;
-import me.darknet.lua.vm.VMException;
 import me.darknet.lua.vm.execution.Executor;
 import me.darknet.lua.vm.value.StringValue;
 import me.darknet.lua.vm.value.Value;
 
-public class ConcatExecutor implements Executor<ArithmeticInstruction> {
+public class ConcatExecutor implements Executor<ConcatInstruction> {
 	@Override
-	public void execute(ArithmeticInstruction instruction, ExecutionContext ctx) {
+	public void execute(ConcatInstruction inst, ExecutionContext ctx) {
 
-		int begin = instruction.getA();
-		int end = instruction.getB();
+		int begin = inst.getBegin();
+		int end = inst.getEnd();
 
 		StringBuilder builder = new StringBuilder();
 
@@ -21,12 +20,12 @@ public class ConcatExecutor implements Executor<ArithmeticInstruction> {
 			try {
 				builder.append(a.asString());
 			} catch(Exception e) {
-				ctx.throwError("attempt to concatenate a %s value", a.getType().name().toLowerCase());
+				//ctx.throwError("attempt to concatenate a %s value", a.getType().name().toLowerCase());
 				return;
 			}
 		}
 
-		ctx.set(instruction.getRegister(), new StringValue(builder.toString()));
+		ctx.set(inst.getRegister(), new StringValue(builder.toString()));
 
 	}
 }

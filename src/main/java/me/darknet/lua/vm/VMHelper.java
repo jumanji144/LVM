@@ -18,106 +18,96 @@ public class VMHelper {
 	}
 
 	public ExecutionContext invoke(LuaFunction function, Table env) {
-		return invoke(new Closure(function, env));
-	}
-
-	public ExecutionContext invoke(Closure closure, Value... args) {
-		if(closure.isLuaFunction()) {
-			LuaFunction function = closure.getLuaFunction();
-			// create state for function
-			ExecutionContext ctx = new ExecutionContext(vm, function.getMaxStackSize());
-			// copy args to registers
-			for (int i = 0; i < args.length; i++) {
-				ctx.set(i, args[i]);
-			}
-
-			// set up function
-			ctx.setCurrentFunction(function);
-			ctx.setPc(0);
-			ctx.setCurrentClosure(closure);
-
-			interpreter.execute(ctx, function);
-			return ctx;
-		} else {
-			ExecutionContext ctx = new ExecutionContext(vm, args.length);
-			for (int i = 0; i < args.length; i++) {
-				ctx.set(i, args[i]);
-			}
-			ctx.setPc(-1);
-			ctx.setCurrentClosure(closure);
-
-			closure.getJavaFunction().accept(ctx);
-
-			return ctx;
-		}
+		ExecutionContext ctx = new ExecutionContext(new Value[function.getMaxStackSize()]);
+		ctx.setEnv(env);
+		ctx.setVm(vm);
+		ctx.setFunction(function);
+		interpreter.execute(ctx, function);
+		return ctx;
 	}
 
 	public void invoke(ExecutionContext ctx) {
-		Closure closure = ctx.getCurrentClosure();
-		if(closure.isLuaFunction()) {
-			interpreter.execute(ctx, closure.getLuaFunction());
+		Closure cl = ctx.getClosure();
+		if(cl.isLuaFunction()) {
+			LuaFunction function = cl.getLuaFunction();
+			interpreter.execute(ctx, function);
 		} else {
-			closure.getJavaFunction().accept(ctx);
+			int results = cl.getJavaFunction().apply(ctx);
+			endCtx(ctx, results);
 		}
 	}
 
-	/**
-	 * Prepares a ctx for a function call.
-	 * @param closure closure to prepare
-	 * @param passed how many arguments were passed
-	 * @param arguments actual arguments (also includes varargs)
-	 * @return prepared ctx
-	 */
-	public ExecutionContext prepareCtx(Closure closure, int passed, Value... arguments) {
-		ExecutionContext ctx2;
+	private int adjustVarargs(ExecutionContext ctx, LuaFunction function, int actual) {
+		int numFixed = function.getNumParams();
+		int base, fixed;
 
-		// prepare context
-		if(closure.isLuaFunction()) {
-
-			LuaFunction function = closure.getLuaFunction();
-
-			ctx2 = new ExecutionContext(vm, function.getMaxStackSize());
-
-			for (int i = 0; i < function.getNumParams(); i++) {
-				if(i >= arguments.length) ctx2.set(i, NilValue.NIL);
-				else ctx2.set(i, arguments[i]);
-			}
-
-			if(function.isVararg()) {
-				int offset = function.getNumParams() + 1;
-				int numArgs = arguments.length - offset;
-				Value[] args = new Value[numArgs];
-				System.arraycopy(arguments, offset, args, 0, numArgs);
-				ctx2.setVarargs(args);
-			}
-
-			// set up function
-			ctx2.setCurrentFunction(function);
-			ctx2.setCurrentClosure(closure);
-
-
-		} else {
-
-			int args = passed - 1;
-			if(args== -1) { // arguments are varargs
-				// cant know them so just make them all the register we have left
-				args = arguments.length;
-			}
-
-			// create state for function
-			ctx2 = new ExecutionContext(vm, args);
-
-			// copy args to registers
-			for (int i = 0; i < args; i++) {
-				ctx2.set(i, arguments[i]);
-			}
-
-			// execute function
-			ctx2.setPc(-1);
-			ctx2.setCurrentClosure(closure);
-
+		for(; actual < numFixed; actual++) {
+			ctx.push(NilValue.NIL);
 		}
-		return ctx2;
+
+		fixed = ctx.getTop() - actual;
+		base = ctx.getTop();
+		for(int i = 0; i < numFixed; i++) {
+			ctx.push(ctx.getRaw(fixed + i));
+			ctx.setRaw(fixed + i, NilValue.NIL);
+		}
+
+		return base;
 	}
+
+	public ExecutionContext prepareCtx(ExecutionContext parent, Closure cl, int func, int numResults) {
+		ExecutionContext newCtx;
+		if(cl.isLuaFunction()) { // is lua function
+			LuaFunction function = cl.getLuaFunction();
+			int base;
+			int top = parent.getTop();
+			if(!function.isVararg()) {
+				base = func + 1; // base will be first argument
+				if(top > base + function.getNumParams()) // if top is not already correct
+					top = base + function.getNumParams(); // top is end of arguments
+			} else {
+				int args = (parent.getTop() - func) - 1; // number of ACTUAL arguments
+				base = adjustVarargs(parent, function, args); // adjust for varargs
+			}
+			newCtx = new ExecutionContext(parent, top, base); // create new context
+			newCtx.setFunctionReturn(func); // set which register to write back to
+			// create and clear old stack
+			newCtx.ensureSize(top + function.getMaxStackSize()); // ensure stack is large enough to fit new stack
+			top = base + function.getMaxStackSize(); // top is end of stack
+			for(int st = parent.getTop(); st < top; st++) {
+				newCtx.setRaw(st, NilValue.NIL); // file with nil to mark empty slots
+			}
+			// update correct top pointer
+			newCtx.setTop(top); // re-set the stack top
+		} else {
+			int base = func + 1; // base is simply start of arguments
+			int top = parent.getTop(); // top is top, so end of arguments
+			newCtx = new ExecutionContext(parent, top, base); // create new context
+			newCtx.ensureSize(top + 20); // +20 here because we don't know if libraries may add to stack
+		}
+		newCtx.setClosure(cl);
+		newCtx.setNumResults(numResults);
+		newCtx.setVm(vm);
+		return newCtx;
+	}
+
+	public void endCtx(ExecutionContext ctx, int start) {
+		int register = ctx.getBase() + start;
+
+		int res = ctx.getFunctionReturn();
+		int wanted = ctx.getNumResults();
+
+		int i;
+		for(i = wanted; i != 0 && register < ctx.getTop(); i--)
+			ctx.setRaw(res++, ctx.getRaw(register++));
+		while(i-- > 0)
+			ctx.setRaw(res++, NilValue.NIL);
+
+		ctx.setTop(res);
+	}
+
+	public void callMetaMethod(Value value, String name, Value... args) {
+	}
+
 
 }

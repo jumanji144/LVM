@@ -17,19 +17,17 @@ public class VMException extends RuntimeException{
 
 	@Override
 	public String getMessage() {
-		return ctx.getCurrentError().print();
+		return ctx.getError().print();
 	}
 
 	public String constructStackTrace() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("lua stack trace:\n");
 		ExecutionContext ctx = this.ctx;
-		String source = ctx.getCurrentError().getSource();
-		while(ctx != null) {
-			LuaFunction function = ctx.getCurrentFunction();
-			sb.append("\t- ").append(source).append(':').append(function.getLine(ctx.getPc())).append("\n");
-			ctx = ctx.getCaller();
-		}
+		String source = ctx.getError().getSource();
+		LuaFunction function = ctx.getFunction();
+		sb.append("\t- ").append(source).append(':').append(function.getLine(ctx.getPc())).append("\n");
+		//ctx = ctx.getCaller();
 		return sb.toString();
 	}
 }

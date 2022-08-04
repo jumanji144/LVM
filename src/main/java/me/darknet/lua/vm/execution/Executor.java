@@ -4,6 +4,6 @@ import me.darknet.lua.file.instructions.Instruction;
 
 public interface Executor<T extends Instruction> {
 
-	void execute(T instruction, ExecutionContext ctx);
+	void execute(T inst, ExecutionContext ctx);
 
 }

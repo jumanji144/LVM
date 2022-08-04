@@ -1,6 +1,8 @@
 package me.darknet.lua.vm.data;
 
 import lombok.Getter;
+import lombok.Setter;
+import me.darknet.lua.vm.value.NilValue;
 import me.darknet.lua.vm.value.Value;
 
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ public class Table {
 	Map<String, Value> table = new HashMap<>();
 	List<Value> array = new ArrayList<>();
 
+	@Setter
 	Table metatable;
 
 	public void insert(int index, Value value) {
@@ -50,7 +53,8 @@ public class Table {
 	}
 
 	public Value get(String value) {
-		return table.get(value);
+		Value v = table.get(value);
+		return v == null ? NilValue.NIL : v;
 	}
 
 	public boolean has(String key) {
