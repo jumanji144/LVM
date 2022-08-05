@@ -4,6 +4,7 @@ import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
+import me.darknet.lua.vm.value.ClosureValue;
 import me.darknet.lua.vm.value.NilValue;
 import me.darknet.lua.vm.value.Value;
 
@@ -33,8 +34,29 @@ public class VMHelper {
 			interpreter.execute(ctx, function);
 		} else {
 			int results = cl.getJavaFunction().apply(ctx);
-			endCtx(ctx, results);
+			endCtx(ctx, ctx.getTop() - results);
 		}
+	}
+
+	public void invoke(ExecutionContext ctx, int func, int numResults) {
+		ClosureValue closure = (ClosureValue) ctx.getRaw(func);
+		Closure cl = closure.getClosure();
+
+		ExecutionContext newCtx = prepareCtx(ctx, cl, func, numResults);
+		invoke(newCtx);
+		finish(ctx, newCtx);
+	}
+
+	public int invoke(ExecutionContext ctx, Closure cl, int numResults, Value... args) {
+		// emulate the stack layout of a function call
+		int register = ctx.getTop();
+		ctx.push(new ClosureValue(cl));
+		for(Value arg : args) {
+			ctx.push(arg);
+		}
+		// top should already be adjusted
+		invoke(ctx, register, numResults);
+		return register; // return the return register
 	}
 
 	private int adjustVarargs(ExecutionContext ctx, LuaFunction function, int actual) {
@@ -70,6 +92,7 @@ public class VMHelper {
 				base = adjustVarargs(parent, function, args); // adjust for varargs
 			}
 			newCtx = new ExecutionContext(parent, top, base); // create new context
+			newCtx.setFunction(function); // set function
 			newCtx.setFunctionReturn(func); // set which register to write back to
 			// create and clear old stack
 			newCtx.ensureSize(top + function.getMaxStackSize()); // ensure stack is large enough to fit new stack
@@ -88,26 +111,30 @@ public class VMHelper {
 		newCtx.setClosure(cl);
 		newCtx.setNumResults(numResults);
 		newCtx.setVm(vm);
+		newCtx.setEnv(parent.getEnv());
 		return newCtx;
 	}
 
 	public void endCtx(ExecutionContext ctx, int start) {
-		int register = ctx.getBase() + start;
 
 		int res = ctx.getFunctionReturn();
 		int wanted = ctx.getNumResults();
 
 		int i;
-		for(i = wanted; i != 0 && register < ctx.getTop(); i--)
-			ctx.setRaw(res++, ctx.getRaw(register++));
+		for(i = wanted; i != 0 && start < ctx.getTop(); i--)
+			ctx.setRaw(res++, ctx.getRaw(start++));
 		while(i-- > 0)
 			ctx.setRaw(res++, NilValue.NIL);
 
 		ctx.setTop(res);
 	}
 
-	public void callMetaMethod(Value value, String name, Value... args) {
+	public void finish(ExecutionContext ctx, ExecutionContext oldCtx) {
+		ctx.setStack(oldCtx.getStack());
+		ctx.setTop(oldCtx.getTop());
 	}
 
+	public void callMetaMethod(Value value, String name, Value... args) {
+	}
 
 }

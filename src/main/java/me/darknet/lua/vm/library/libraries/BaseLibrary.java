@@ -1,15 +1,11 @@
 package me.darknet.lua.vm.library.libraries;
 
 import me.darknet.lua.vm.data.Closure;
-import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.library.Library;
-import me.darknet.lua.vm.value.*;
-
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static me.darknet.lua.vm.value.NilValue.NIL;
+import me.darknet.lua.vm.value.BooleanValue;
+import me.darknet.lua.vm.value.ClosureValue;
+import me.darknet.lua.vm.value.StringValue;
 
 public class BaseLibrary extends Library {
 
@@ -20,173 +16,67 @@ public class BaseLibrary extends Library {
 		set("_VERSION", new StringValue(VERSION));
 	}
 
-	public void lua_assert(ExecutionContext ctx) {
-		if(!ctx.get(0).asBoolean()) throw new AssertionError("Assertion failed");
-	}
-
-	public void lua_collectgarbage(ExecutionContext ctx) {
-		// TODO
-	}
-
-	public void lua_dofile(ExecutionContext ctx) {
-		String argument = ctx.has(0) ? ctx.get(0).asString() : null;
-		// TODO
-	}
-
-	public void lua_gcinfo(ExecutionContext ctx) {
-		ctx.setReturnValues(new NumberValue(0));
-	}
-
-	public void lua_getfenv(ExecutionContext ctx) {
-		Table env = ctx.getCaller().getEnv();
-		TableValue val;
-		if(env == null) {
-			val = new TableValue(ctx.getVM().getGlobal());
-		} else {
-			val = new TableValue(env);
-		}
-		ctx.setReturnValues(val);
-	}
-
-	public void lua_getmetatable(ExecutionContext ctx) {
-		// If object does not have a metatable, returns nil.
-		// Otherwise, if the object's metatable has a __metatable field, returns the associated value.
-		// Otherwise, returns the metatable of the given object.
-		Value obj = ctx.get(0);
-		Value returnValue;
-		if(obj instanceof TableValue tb) {
-			Table meta = tb.getTable().getMetatable();
-			if(meta.has("__metatable")) {
-				returnValue = meta.get("__metatable");
-			} else {
-				returnValue = new TableValue(meta);
-			}
-		} else {
-			returnValue = NIL;
-		}
-		ctx.setReturnValues(returnValue);
-	}
-
-	public void lua_loadfile(ExecutionContext ctx) {
-		// TODO
-	}
-
-	public void lua_load(ExecutionContext ctx) {
-		// TODO
-	}
-
-	public void lua_loadstring(ExecutionContext ctx) {
-		// TODO
-	}
-
-	public void lua_next(ExecutionContext ctx) {
-		TableValue table = (TableValue) ctx.get(0);
-		Map<String, Value> map = table.getTable().getTable();
-		Value key = ctx.getOrNil(1);
-		if(key.isNil()) { // return first pair in table
-			for(String k : map.keySet()) {
-				ctx.ret(new StringValue(k), map.get(k));
-				return;
-			}
-			ctx.ret(NIL, NIL);
-		} else { // else return the key that comes after the given key
-			// if the key doesn't exist at all return nil
-			if(!map.containsKey(key.asString())) {
-				ctx.ret(NIL, NIL);
-				return;
-			}
-			// get the next key
-			String nextKey = null;
-			for (String s : map.keySet()) {
-				if(s.equals(key.asString())) {
-					nextKey = s;
-					break;
-				}
-			}
-			if(nextKey == null) {
-				ctx.ret(NIL, NIL);
-				return;
-			}
-
-			// get the next value
-			Value nextValue = map.get(nextKey);
-			ctx.ret(new StringValue(nextKey), nextValue);
-		}
-	}
-	public void lua_pcall(ExecutionContext ctx) {
+	public int lua_pcall(ExecutionContext ctx) {
 		ClosureValue closure = (ClosureValue) ctx.get(0);
 		Closure cl = closure.getClosure();
 
-		Value[] arguments = new Value[ctx.getRegisters().length - 1];
-		System.arraycopy(ctx.getRegisters(), 1, arguments, 0, arguments.length);
+		ExecutionContext newContext = ctx.getHelper().prepareCtx(ctx, cl, ctx.reg(0), -1);
 
-		ExecutionContext newCtx = ctx.getVM().getHelper().prepareCtx(cl, arguments.length, arguments);
+		ctx.getHelper().invoke(newContext);
 
-		AtomicReference<Value> ret = new AtomicReference<>(NIL);
-		Closure perrorHandler = new Closure((c) -> ret.set(c.get(0)), null);
+		boolean status = newContext.getError() != null;
 
-		newCtx.setCatchFunction(perrorHandler);
-		newCtx.setCaller(ctx); // we are the caller of the closure
+		ctx.push(new BooleanValue(status));
+		if(!status) ctx.push(new StringValue(newContext.getError().print()));
 
-		// call the closure
-		ctx.getVM().getHelper().invoke(newCtx);
+		ctx.insert(ctx.getTop(), ctx.getBase());
 
-		Value errorVal = ret.get();
-		int returns = !errorVal.isNil() ? 2 : 1 + newCtx.getReturnValues().length;
-		Value[] returnArray = new Value[returns];
-		Value[] returnValues = newCtx.getReturnValues();
-		BooleanValue status = new BooleanValue(errorVal.isNil());
-		returnArray[0] = status;
-		if(errorVal.isNil()) {
-			// copy return values to return array
-			System.arraycopy(returnValues, 0, returnArray, 1, returnValues.length);
-		} else {
-			returnArray[1] = errorVal;
-		}
-
-		ctx.ret(returnArray);
+		return ctx.getTop() - ctx.getBase();
 	}
 
-	public void lua_xpcall(ExecutionContext ctx) {
-		ClosureValue target = (ClosureValue) ctx.get(0);
-		ClosureValue errorHandler = (ClosureValue) ctx.get(1);
+	public int lua_xpcall(ExecutionContext ctx) {
 
-		Closure cl = target.getClosure();
+		// TODO: stack offsets are not correct, res1 of errFunc gets put at reg(3) instead of reg(1)
+		// probably requires manual stack management
+
+		ClosureValue closure = (ClosureValue) ctx.get(0);
+		Closure cl = closure.getClosure();
+		ClosureValue errorHandler = (ClosureValue) ctx.get(1);
 		Closure eh = errorHandler.getClosure();
 
-		AtomicReference<Value> ret = new AtomicReference<>(NIL);
-		Closure perrorHandler = new Closure((c) -> ret.set(c.get(0)), null);
+		int top = ctx.getTop(); // remember top
 
-		// no arguments are passed to the closure
-		ExecutionContext newCtx = ctx.getVM().getHelper().prepareCtx(cl, 0);
+		ExecutionContext newContext = ctx.getHelper().prepareCtx(ctx, cl, ctx.reg(0), -1);
+		newContext.setErrorHandler(eh);
 
-		newCtx.setCatchFunction(perrorHandler);
-		newCtx.setCaller(ctx); // we are the caller of the closure
+		ctx.getHelper().invoke(newContext);
 
-		// call the closure
-		ctx.getVM().getHelper().invoke(newCtx);
+		boolean status = newContext.getError() == null;
 
-		Value errorVal = ret.get();
-		if(!errorVal.isNil())
-			// we can just call invoke, because we have a guarantee that the error handler will be a 1 argument function
-			ctx.getVM().getHelper().invoke(eh, errorVal);
+		if(!status) {
+			ctx.setTop(top); // restore top
+			ctx.push(newContext.getErrorHandlerReturn());
+		}
 
-		Value[] returns = new Value[2];
-		returns[0] = new BooleanValue(errorVal.isNil());
-		returns[1] = errorVal;
+		ctx.push(new BooleanValue(status));
 
-		ctx.ret(returns);
+		ctx.insert(ctx.getTop(), ctx.getBase());
 
+		return ctx.getTop() - ctx.getBase();
 	}
 
-	public void lua_print(ExecutionContext ctx) {
+
+	public int lua_print(ExecutionContext ctx) {
+		int n = ctx.getTop() - ctx.getBase();
 		StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < ctx.getRegisters().length; i++) {
+		for(int i = 0; i < n; i++) {
 			sb.append(ctx.get(i).asString());
-			if(i < ctx.getRegisters().length - 1) sb.append("\t");
+			if(n > 1) sb.append("\t");
 		}
 		System.out.println(sb);
+		return 0; // no return values
 	}
+
 
 
 }

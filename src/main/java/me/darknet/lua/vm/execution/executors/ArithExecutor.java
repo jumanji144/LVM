@@ -26,7 +26,7 @@ public class ArithExecutor implements Executor<ArithmeticInstruction> {
 		} catch (Exception e) {
 			// problem type:
 			Value problem = a instanceof NumberValue ? b : a;
-			//ctx.throwError("attempt to perform arithmetic on a %s value", problem.getType().name().toLowerCase());
+			ctx.throwError("attempt to perform arithmetic on a %s value", problem.getType().name().toLowerCase());
 		}
 	}
 }

@@ -1,22 +1,24 @@
 package me.darknet.lua.vm.library;
 
 import lombok.Getter;
+import me.darknet.lua.vm.Interpreter;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
-import me.darknet.lua.vm.util.MethodConsumer;
 import me.darknet.lua.vm.value.ClosureValue;
 import me.darknet.lua.vm.value.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Getter
 public class Library {
 
+	private static final Logger logger = LoggerFactory.getLogger(Interpreter.class);
 	private String name;
 	private String globalName;
 	private Map<String, Function<ExecutionContext, Integer>> methods = new HashMap<>();
@@ -45,7 +47,11 @@ public class Library {
 			if(declaredMethod.getName().startsWith("lua_")) {
 				methods.put(declaredMethod.getName().substring(4), (ctx) -> {
 					try {
-						return (int) declaredMethod.invoke(this, ctx);
+						Object returnValue = declaredMethod.invoke(this, ctx);
+						if(returnValue == null) {
+							logger.error("Method {} returned null (not a int method)", declaredMethod.getName());
+							throw new RuntimeException("Method returned null");
+						} else return (int) returnValue;
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

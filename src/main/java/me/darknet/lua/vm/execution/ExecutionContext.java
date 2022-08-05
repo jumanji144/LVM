@@ -5,6 +5,7 @@ import lombok.Setter;
 import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.file.instructions.Argument;
 import me.darknet.lua.vm.VM;
+import me.darknet.lua.vm.VMException;
 import me.darknet.lua.vm.VMHelper;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
@@ -28,9 +29,12 @@ public class ExecutionContext {
 	LuaFunction function;
 	Closure closure;
 	Closure caller;
+	ExecutionContext parent;
 	// error handling
 	Error error;
 	Closure errorHandler;
+	Value errorHandlerReturn;
+	boolean returnOnError;
 
 	public ExecutionContext(Value[] stack) {
 		this.stack = stack;
@@ -41,6 +45,7 @@ public class ExecutionContext {
 		this.stack = ctx.getStack();
 		setTop(top);
 		setBase(base);
+		this.parent = ctx;
 	}
 
 	public Value get(int register) {
@@ -65,6 +70,10 @@ public class ExecutionContext {
 
 	public Value pop() {
 		return stack[--top];
+	}
+
+	public int reg(int register) {
+		return base + register;
 	}
 
 	public void setTop(int top) {
@@ -103,5 +112,19 @@ public class ExecutionContext {
 
 	public VMHelper getHelper() {
 		return vm.getHelper();
+	}
+
+	public void insert(int target, int location) {
+		// first move everything to the right
+		for (int i = top + 1; i > location - 1; i--) {
+			stack[i+1] = stack[i];
+		}
+		// then insert the value
+		stack[location] = stack[target];
+	}
+
+	public void throwError(String fmt, Object... args) {
+		error = new Error("", function.getLine(pc), String.format(fmt, args));
+		throw new VMException(this);
 	}
 }

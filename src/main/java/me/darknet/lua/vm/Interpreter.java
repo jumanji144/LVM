@@ -86,7 +86,11 @@ public class Interpreter implements Opcodes {
 				if(ctx.getError() != null) {
 					if(ctx.getErrorHandler() != null) {
 						Error error = ctx.getError();
-						//ctx.getVm().getHelper().invoke(ctx.getErrorHandler(), new StringValue(error.print()));
+						int ret = ctx.getHelper().invoke(ctx, ctx.getErrorHandler(), -1, new StringValue(error.print()));
+						ctx.setErrorHandlerReturn(ctx.getRaw(ret));
+						return;
+					}
+					if(ctx.isReturnOnError()) {
 						return;
 					}
 				}
