@@ -9,7 +9,11 @@ public class ReturnExecutor implements Executor<ReturnInstruction> {
 	@Override
 	public void execute(ReturnInstruction inst, ExecutionContext ctx) {
 
-		ctx.getHelper().endCtx(ctx, inst.getRegister());
+		int returns = inst.getNumReturns();
+		int register = ctx.getBase() + inst.getRegister();
+		if(returns != 0) ctx.setTop(register + returns - 1);
+
+		ctx.getHelper().endCtx(ctx, register);
 
 		ctx.setReturning(true);
 	}
