@@ -42,7 +42,7 @@ static int getArgBx(int i) {
 }
 
 static int getArgsBx(int i) {
-	return getArgBx(i) - Integer.MAX_VALUE;
+	return (getArgBx(i) & 0xFFFF);
 }
 
 static boolean isK(int i) {

@@ -50,7 +50,7 @@ public class LuaInstructionReader implements Opcodes {
 				case UNM,
 						NOT,
 						LEN -> new UnaryInstruction(op, A, B);
-				case JMP -> new JumpInstruction(Bx);
+				case JMP -> new JumpInstruction(sBx);
 				case EQ,
 						LT,
 						LE -> new CompareInstruction(op, A, argument(B), argument(C));
@@ -62,7 +62,7 @@ public class LuaInstructionReader implements Opcodes {
 				case FORLOOP,
 						TFORLOOP -> new ForLoopInstruction(op,
 								A,
-								op == FORLOOP ? Bx : C);
+								op == FORLOOP ? sBx : C);
 				case FORPREP -> new ForPrepInstruction(A, sBx);
 				case SETLIST -> new SetListInstruction(A, B, C);
 				case CLOSE -> new CloseInstruction(A);
