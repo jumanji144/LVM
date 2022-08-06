@@ -67,4 +67,7 @@ public class Table {
 		array.forEach(other::insert);
 	}
 
+	public boolean hasMetatable() {
+		return metatable != null;
+	}
 }

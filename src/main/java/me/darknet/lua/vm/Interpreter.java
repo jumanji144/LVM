@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Interpreter implements Opcodes {
 
@@ -42,9 +43,15 @@ public class Interpreter implements Opcodes {
 			ctx.getEnv().set(constant.getValue(), ctx.get(inst.getRegister()));
 		});
 		install(LOADK, new LoadConstantExecutor());
+		install(LOADBOOL, (Executor<LoadBoolInstruction>) (inst, ctx) -> {
+			if(inst.getCondition() != 0) ctx.setPc(ctx.getPc() + 1);
+			ctx.set(inst.getRegister(), new BooleanValue(inst.getValue()));
+		});
 		install(LOADNIL, (Executor<LoadInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), NilValue.NIL));
 		install(NEWTABLE, (Executor<NewTableInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), new TableValue(new Table())));
+		install(GETTABLE, new GetTableExecutor());
 		install(SETTABLE, new SetTableExecutor());
+		install(SELF, new SelfExecutor());
 		install(ADD, new ArithExecutor((a, b) -> new NumberValue(a.asNumber() + b.asNumber())));
 		install(SUB, new ArithExecutor((a, b) -> new NumberValue(a.asNumber() - b.asNumber())));
 		install(MUL, new ArithExecutor((a, b) -> new NumberValue(a.asNumber() * b.asNumber())));
@@ -55,6 +62,10 @@ public class Interpreter implements Opcodes {
 		install(NOT, new ArithExecutor((a, b) -> new BooleanValue(!a.asBoolean())));
 		install(LEN, new LenExecutor());
 		install(CONCAT, new ConcatExecutor());
+		install(JMP, (Executor<JumpInstruction>) (inst, ctx) -> ctx.setPc(ctx.getPc() + inst.getOffset() + 1));
+		install(EQ, new CompExecutor(Double::equals));
+		install(LT, new CompExecutor((a, b) -> a < b));
+		install(LE, new CompExecutor((a, b) -> a <= b));
 		install(CALL, new CallExecutor());
 		install(RETURN, new ReturnExecutor());
 		install(CLOSURE, (Executor<ClosureInstruction>) (inst, ctx) -> ctx.set(
@@ -86,7 +97,7 @@ public class Interpreter implements Opcodes {
 				if(ctx.getError() != null) {
 					if(ctx.getErrorHandler() != null) {
 						Error error = ctx.getError();
-						int ret = ctx.getHelper().invoke(ctx, ctx.getErrorHandler(), -1, new StringValue(error.print()));
+						int ret = ctx.getHelper().invoke(ctx, ctx.getErrorHandler(), 1, new StringValue(error.print()));
 						ctx.setErrorHandlerReturn(ctx.getRaw(ret));
 						return;
 					}
@@ -102,7 +113,7 @@ public class Interpreter implements Opcodes {
 			if(ctx.isReturning()) return;
 
 			// increment the pc
-			ctx.setPc(pc + 1);
+			ctx.setPc(ctx.getPc() + 1);
 		}
 
 	}

@@ -17,8 +17,9 @@ public class VM {
 	public VM() {
 		interpreter = new Interpreter();
 		helper = new VMHelper(interpreter, this);
-		libraries = new Libraries();
+		libraries = new Libraries(this);
 		global = new Table();
+		global.setMetatable(new Table());
 	}
 
 	public void initialize() {
