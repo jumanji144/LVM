@@ -124,7 +124,31 @@ public class ExecutionContext {
 	}
 
 	public void throwError(String fmt, Object... args) {
-		error = new Error("", function.getLine(pc), String.format(fmt, args));
+		if(closure.isLuaFunction()) error = new Error(function.getSource(), function.getLine(pc), String.format(fmt, args));
+		else error = new Error("", -1, String.format(fmt, args));
 		throw new VMException(this);
+	}
+
+	public boolean has(int register) {
+		return stack[base + register] != null;
+	}
+
+	public Value getRequired(int register) {
+		if(!has(register)) throwError("bad argument %d value expected", register);
+		return get(register);
+	}
+
+	public String optionalString(int register, String defaultValue) {
+		if(!has(register)) return defaultValue;
+		return get(register).asString();
+	}
+
+	public int optionalInt(int register, int defaultValue) {
+		if(!has(register)) return defaultValue;
+		return (int) get(register).asNumber();
+	}
+
+	public int size() {
+		return top - base;
 	}
 }
