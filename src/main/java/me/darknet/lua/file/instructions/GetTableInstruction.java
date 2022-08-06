@@ -15,4 +15,9 @@ public class GetTableInstruction extends Instruction {
 		this.table = table;
 		this.index = index;
 	}
+
+	@Override
+	public String print() {
+		return super.print() + " R(" + table + ")[" + index.toString() + "] -> R(" + register + ")";
+	}
 }

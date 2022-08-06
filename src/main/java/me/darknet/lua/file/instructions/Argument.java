@@ -32,4 +32,12 @@ public class Argument {
 		return constant.isPresent();
 	}
 
+	@Override
+	public String toString() {
+		if (isConstant()) {
+			return constant.get().toString();
+		} else {
+			return Integer.toString(value);
+		}
+	}
 }
