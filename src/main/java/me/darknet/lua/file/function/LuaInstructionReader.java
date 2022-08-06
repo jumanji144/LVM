@@ -16,6 +16,9 @@ public class LuaInstructionReader implements Opcodes {
 	public List<Instruction> read() {
 
 		List<Instruction> output = new ArrayList<>();
+		List<Integer> lines = function.getLines();
+
+		int linesSize = lines.size();
 
 		int[] code = function.getCode();
 
@@ -71,7 +74,9 @@ public class LuaInstructionReader implements Opcodes {
 				default -> null;
 			};
 			if(inst == null) continue;
-			inst.setLine(function.getLine(i));
+			if(i < linesSize) {
+				inst.setLine(lines.get(i));
+			}
 			output.add(inst);
 		}
 

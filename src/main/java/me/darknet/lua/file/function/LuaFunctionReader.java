@@ -22,6 +22,10 @@ public class LuaFunctionReader implements ConstantTypes{
 
 	public void readCode(LuaFunction function) throws IOException {
 		int codeSize = stream.readInteger();
+		if(codeSize < 0) {
+			function.setCode(new int[0]);
+			return;
+		}
 		int[] code = new int[codeSize];
 		for(int i = 0; i < codeSize; i++) {
 			code[i] = stream.readInteger();
@@ -44,22 +48,20 @@ public class LuaFunctionReader implements ConstantTypes{
 		}
 	}
 
-	public void readUpvalues(LuaFunction function, boolean readNames, boolean readKind) throws IOException {
+	public void readUpvalues(LuaFunction function, boolean readKind, boolean onlyNames) throws IOException {
 		int upvalueCount = stream.readInteger();
 		for(int i = 0; i < upvalueCount; i++) {
-			if (readNames) {
-				Upvalue upvalue = function.getUpvalue(i);
-				if(upvalue == null) {
-					upvalue = new Upvalue(stream.readString(), false, 0, 0);
-					function.addUpvalue(upvalue);
-				}
-				else upvalue.setName(stream.readString());
+			Upvalue upvalue;
+			if(onlyNames) {
+				upvalue = new Upvalue(stream.readString(), false, 0, 0);
+			} else {
+				upvalue = new Upvalue(
+						stream.readString(),
+						stream.readByte() != 0,
+						stream.readByte(),
+						readKind ? stream.readByte() : 0);
 			}
-			else function.addUpvalue(new Upvalue(
-					null,
-					stream.readByte() != 0,
-					stream.readByte(),
-					readKind ? stream.readByte() : 0));
+			function.addUpvalue(upvalue);
 		}
 	}
 
@@ -70,7 +72,7 @@ public class LuaFunctionReader implements ConstantTypes{
 			int type = stream.readByte();
 			constants.add(switch (type) {
 				case TNIL -> new NilConstant();
-				case TBOOLEAN -> new BooleanConstant(version >= 83 && stream.readByte() != 0);
+				case TBOOLEAN -> new BooleanConstant(stream.readByte() != 0);
 				case VTRUE -> new BooleanConstant(true);
 				case TNUMBER -> {
 					if(version >= 83) yield new IntConstant(stream.readInteger());
@@ -104,7 +106,6 @@ public class LuaFunctionReader implements ConstantTypes{
 			readCode(function);
 			readConstants(function);
 			if(version > 82) {
-				readUpvalues(function, false, false);
 				readProtos(function);
 			} else {
 				readProtos(function);
@@ -114,7 +115,7 @@ public class LuaFunctionReader implements ConstantTypes{
 		if(version == 82) function.setSource(stream.readString());
 		readLines(function);
 		readLocals(function);
-		readUpvalues(function, version > 81, false);
+		readUpvalues(function, false, true);
 
 		if(version == 80) {
 			readConstants(function);
