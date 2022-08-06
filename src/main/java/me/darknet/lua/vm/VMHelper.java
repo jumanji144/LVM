@@ -3,10 +3,9 @@ package me.darknet.lua.vm;
 import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
+import me.darknet.lua.vm.data.UserData;
 import me.darknet.lua.vm.execution.ExecutionContext;
-import me.darknet.lua.vm.value.ClosureValue;
-import me.darknet.lua.vm.value.NilValue;
-import me.darknet.lua.vm.value.Value;
+import me.darknet.lua.vm.value.*;
 
 public class VMHelper {
 
@@ -59,6 +58,18 @@ public class VMHelper {
 		return register; // return the return register
 	}
 
+	public void callMetamethod(ExecutionContext ctx, int res, Value function, Value arg1, Value arg2) {
+
+		ctx.push(function); // push the function to be called
+		ctx.push(arg1); // first arg
+		ctx.push(arg2); // second arg
+
+		invoke(ctx, ctx.getTop() - 3, 1); // call the function
+
+		ctx.setTop(ctx.getTop() - 1); // pop the function
+		ctx.setRaw(res, ctx.getRaw(ctx.getTop())); // set the result
+	}
+
 	private int adjustVarargs(ExecutionContext ctx, LuaFunction function, int actual) {
 		int numFixed = function.getNumParams();
 		int base, fixed;
@@ -106,6 +117,7 @@ public class VMHelper {
 			int base = func + 1; // base is simply start of arguments
 			int top = parent.getTop(); // top is top, so end of arguments
 			newCtx = new ExecutionContext(parent, top, base); // create new context
+			newCtx.setFunctionReturn(func); // set which register to write back to
 			newCtx.ensureSize(top + 20); // +20 here because we don't know if libraries may add to stack
 		}
 		newCtx.setClosure(cl);
@@ -132,6 +144,44 @@ public class VMHelper {
 	public void finish(ExecutionContext ctx, ExecutionContext oldCtx) {
 		ctx.setStack(oldCtx.getStack());
 		ctx.setTop(oldCtx.getTop());
+	}
+
+	public void getTable(ExecutionContext ctx, Value value, Value indexValue, int register) {
+		String index = indexValue.asString();
+		switch (value.getType()) {
+			case TABLE -> {
+				Table table = ((TableValue) value).getTable();
+				Value res = table.get(index); // get table value
+				if(table.hasMetatable() && table.getMetatable().has("__index")) { // does table have index meta function
+					Value obj = table.getMetatable().get("__index");
+					ctx.getHelper().callMetamethod(ctx, register, obj, value, indexValue); // call it
+				} else { // or else instead
+					// set the register to the result
+					ctx.setRaw(register, res); // set raw because register is already offset
+				}
+			}
+			case USERDATA -> {
+				// same as table but we only get via the metatable
+				Table table = ((UserDataValue) value).getValue().getMetatable();
+				Value res = table.get(index); // get table value
+				// no __index lookup because we already got the value
+				ctx.setRaw(register, res); // set raw because register is already offset
+			}
+			default -> {
+				// try to resolve it via the global table
+				Table global = vm.getGlobal();
+				Value res = global.get(value.getType().getName()); // get metatable
+				if(res.getType() == Type.TABLE) {
+					Table table = ((TableValue) res).getTable();
+					res = table.get(index); // get table value
+					// set the register to the result
+					ctx.setRaw(register, res); // set raw because register is already offset
+				} else {
+					// set the register to the result
+					ctx.setRaw(register, NilValue.NIL); // set raw because register is already offset
+				}
+			}
+		}
 	}
 
 	public void callMetaMethod(Value value, String name, Value... args) {
