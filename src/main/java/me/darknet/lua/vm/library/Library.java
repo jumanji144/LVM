@@ -1,7 +1,10 @@
 package me.darknet.lua.vm.library;
 
 import lombok.Getter;
+import lombok.Setter;
 import me.darknet.lua.vm.Interpreter;
+import me.darknet.lua.vm.VM;
+import me.darknet.lua.vm.VMException;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
@@ -10,6 +13,7 @@ import me.darknet.lua.vm.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,10 +23,12 @@ import java.util.function.Function;
 public class Library {
 
 	private static final Logger logger = LoggerFactory.getLogger(Interpreter.class);
-	private String name;
-	private String globalName;
-	private Map<String, Function<ExecutionContext, Integer>> methods = new HashMap<>();
-	private Map<String, Value> constants = new HashMap<>();
+	private final String name;
+	private final String globalName;
+	private final Map<String, Function<ExecutionContext, Integer>> methods = new HashMap<>();
+	private final Map<String, Value> constants = new HashMap<>();
+	@Setter
+	private VM vm;
 
 	public Library(String name) {
 		this.name = name;
@@ -42,6 +48,10 @@ public class Library {
 		constants.put(name, value);
 	}
 
+	public ClosureValue newClosure(Function<ExecutionContext, Integer> function) {
+		return new ClosureValue(new Closure(function, null));
+	}
+
 	public void collect() {
 		for (Method declaredMethod : getClass().getDeclaredMethods()) {
 			if(declaredMethod.getName().startsWith("lua_")) {
@@ -52,6 +62,11 @@ public class Library {
 							logger.error("Method {} returned null (not a int method)", declaredMethod.getName());
 							throw new RuntimeException("Method returned null");
 						} else return (int) returnValue;
+					} catch (InvocationTargetException e) {
+						if(e.getCause() instanceof VMException vm) {
+							throw vm;
+						}
+						throw new RuntimeException(e);
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
