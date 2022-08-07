@@ -70,6 +70,34 @@ public class VMHelper {
 		ctx.setRaw(res, ctx.getRaw(ctx.getTop())); // set the result
 	}
 
+	public boolean attemptMetamethod(ExecutionContext ctx, Value obj1, Value obj2, int res, String metamethod) {
+		Value meta = attemptFindMetaobject(obj1, metamethod);
+		if(meta.isNil()) meta = attemptFindMetaobject(obj2, metamethod);
+		if(meta.isNil()) return false;
+		callMetamethod(ctx, res, meta, obj1, obj2);
+		return true;
+	}
+
+	public Value attemptFindMetaobject(Value v, String method) {
+		Table meta = switch (v.getType()) {
+			case TABLE -> {
+				TableValue t = (TableValue) v;
+				yield t.getTable().getMetatable();
+			}
+			case USERDATA -> {
+				UserDataValue u = (UserDataValue) v;
+				yield u.getValue().getMetatable();
+			}
+			default -> {
+				Table global = vm.getGlobal();
+				Value res = global.get(v.getType().getName()); // get metatable
+				if(res.isNil() || res.getType() != Type.TABLE) yield null;
+				yield ((TableValue) res).getTable();
+ 			}
+		};
+		return meta != null ? meta.get(method) : NilValue.NIL;
+	}
+
 	private int adjustVarargs(ExecutionContext ctx, LuaFunction function, int actual) {
 		int numFixed = function.getNumParams();
 		int base, fixed;
@@ -147,41 +175,38 @@ public class VMHelper {
 	}
 
 	public void getTable(ExecutionContext ctx, Value value, Value indexValue, int register) {
-		String index = indexValue.asString();
-		switch (value.getType()) {
-			case TABLE -> {
+		for(int i = 0; i < 30; i++) {
+			if (value.getType() == Type.TABLE) {
 				Table table = ((TableValue) value).getTable();
-				Value res = table.get(index); // get table value
-				if(table.hasMetatable() && table.getMetatable().has("__index")) { // does table have index meta function
+				Value res = tableGet(table, indexValue);
+				if (table.hasMetatable() && table.getMetatable().has("__index")) { // does table have index meta function
 					Value obj = table.getMetatable().get("__index");
 					ctx.getHelper().callMetamethod(ctx, register, obj, value, indexValue); // call it
 				} else { // or else instead
 					// set the register to the result
 					ctx.setRaw(register, res); // set raw because register is already offset
 				}
-			}
-			case USERDATA -> {
-				// same as table but we only get via the metatable
-				Table table = ((UserDataValue) value).getValue().getMetatable();
-				Value res = table.get(index); // get table value
-				// no __index lookup because we already got the value
-				ctx.setRaw(register, res); // set raw because register is already offset
-			}
-			default -> {
-				// try to resolve it via the global table
-				Table global = vm.getGlobal();
-				Value res = global.get(value.getType().getName()); // get metatable
-				if(res.getType() == Type.TABLE) {
-					Table table = ((TableValue) res).getTable();
-					res = table.get(index); // get table value
-					// set the register to the result
-					ctx.setRaw(register, res); // set raw because register is already offset
-				} else {
-					// set the register to the result
-					ctx.setRaw(register, NilValue.NIL); // set raw because register is already offset
+				return;
+			} else { // get the meta object
+				Value obj = attemptFindMetaobject(value, "__index");
+				if (obj.isNil()) {
+					ctx.throwError("attempt to index a " + value.getType().getName() + " value");
 				}
+				if (obj.getType() == Type.FUNCTION) {
+					ctx.getHelper().callMetamethod(ctx, register, obj, value, indexValue); // call it
+					return;
+				}
+				value = obj; // attempt to get the value again
 			}
 		}
+	}
+
+	public Value tableGet(Table table, Value key) {
+		return switch (key.getType()) {
+			case STRING -> table.get(key.asString());
+			case NUMBER -> table.getArray().get((int) key.asNumber() - 1); // -1 because Lua arrays are 1-based
+			default -> NilValue.NIL;
+		};
 	}
 
 	public void callMetaMethod(Value value, String name, Value... args) {
