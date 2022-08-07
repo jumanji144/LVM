@@ -20,6 +20,8 @@ int POS_C =         (POS_A + SIZE_A); // 9 bits
 int POS_B =         (POS_C + SIZE_C);
 int POS_Bx =        POS_C; // 18 bits
 int BITK = 			(1 << (SIZE_B - 1));
+int MAXARG_Bx = 	((1 << SIZE_Bx) - 1);
+int MAXARG_sBx = 	(MAXARG_Bx >> 1);
 
 static int getOpcode(int i) {
 	return i >> POS_OP & MASK1(SIZE_OP, 0);
@@ -42,7 +44,8 @@ static int getArgBx(int i) {
 }
 
 static int getArgsBx(int i) {
-	return (getArgBx(i) & 0xFFFF);
+	// make Bx signed
+	return getArgBx(i) - MAXARG_sBx;
 }
 
 static boolean isK(int i) {

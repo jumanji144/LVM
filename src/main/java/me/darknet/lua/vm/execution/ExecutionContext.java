@@ -151,4 +151,8 @@ public class ExecutionContext {
 	public int size() {
 		return top - base;
 	}
+
+	public int incPc() {
+		return pc++;
+	}
 }
