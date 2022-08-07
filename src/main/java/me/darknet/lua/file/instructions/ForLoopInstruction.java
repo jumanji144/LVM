@@ -1,5 +1,8 @@
 package me.darknet.lua.file.instructions;
 
+import lombok.Getter;
+
+@Getter
 public class ForLoopInstruction extends Instruction {
 
 	int register;
@@ -11,4 +14,8 @@ public class ForLoopInstruction extends Instruction {
 		this.offset = offset;
 	}
 
+	@Override
+	public String print() {
+		return super.print() + " jmp " + (offset - 1);
+	}
 }

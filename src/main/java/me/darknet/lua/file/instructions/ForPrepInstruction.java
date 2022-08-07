@@ -12,4 +12,9 @@ public class ForPrepInstruction extends Instruction {
 		this.register = register;
 		this.offset = offset;
 	}
+
+	@Override
+	public String print() {
+		return super.print() + " jmp +" + (offset + 1);
+	}
 }
