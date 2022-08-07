@@ -6,6 +6,7 @@ import me.darknet.lua.vm.library.Library;
 import me.darknet.lua.vm.value.BooleanValue;
 import me.darknet.lua.vm.value.ClosureValue;
 import me.darknet.lua.vm.value.StringValue;
+import me.darknet.lua.vm.value.Value;
 
 public class BaseLibrary extends Library {
 
@@ -14,6 +15,19 @@ public class BaseLibrary extends Library {
 	public BaseLibrary() {
 		super("base", "");
 		set("_VERSION", new StringValue(VERSION));
+	}
+
+	public int lua_assert(ExecutionContext ctx) {
+		Value value = ctx.getRequired(0);
+		if(!value.asBoolean()) {
+			String msg = "assertion failed!";
+			if(ctx.has(1)) {
+				Value msgValue = ctx.get(1);
+				if(!msgValue.isNil()) msg = msgValue.asString();
+			}
+			ctx.throwError(msg);
+		}
+		return ctx.getTop();
 	}
 
 	public int lua_pcall(ExecutionContext ctx) {
