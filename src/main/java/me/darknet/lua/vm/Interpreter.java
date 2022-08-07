@@ -62,12 +62,15 @@ public class Interpreter implements Opcodes {
 		install(NOT, new ArithExecutor((a, b) -> new BooleanValue(!a.asBoolean())));
 		install(LEN, new LenExecutor());
 		install(CONCAT, new ConcatExecutor());
-		install(JMP, (Executor<JumpInstruction>) (inst, ctx) -> ctx.setPc(ctx.getPc() + inst.getOffset() + 1));
+		install(JMP, (Executor<JumpInstruction>) (inst, ctx) -> ctx.setPc(ctx.getPc() + inst.getOffset()));
 		install(EQ, new CompExecutor(Double::equals));
 		install(LT, new CompExecutor((a, b) -> a < b));
 		install(LE, new CompExecutor((a, b) -> a <= b));
 		install(CALL, new CallExecutor());
 		install(RETURN, new ReturnExecutor());
+		install(FORLOOP, new ForLoopExecutor());
+		install(FORPREP, new ForPrepExecutor());
+		install(SETLIST, new SetListExecutor());
 		install(CLOSURE, (Executor<ClosureInstruction>) (inst, ctx) -> ctx.set(
 				inst.getRegister(),
 				new ClosureValue(new Closure(inst.getFunction(), ctx.getEnv())) // inherit env from current function
