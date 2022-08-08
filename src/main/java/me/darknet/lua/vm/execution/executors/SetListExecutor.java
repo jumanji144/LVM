@@ -21,7 +21,7 @@ public class SetListExecutor implements Executor<SetListInstruction> {
 		TableValue table = (TableValue) ctx.get(inst.getRegister());
 
 		for (int i = 0; i < amount; i++) {
-			Value value = ctx.get(inst.getRegister() + offset + i);
+			Value value = ctx.get(inst.getRegister() + i);
 			table.getTable().insert(i, value);
 		}
 
