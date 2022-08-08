@@ -33,7 +33,7 @@ public class Interpreter implements Opcodes {
 	}
 
 	void installAll() {
-		install(MOVE, (Executor<LoadInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), ctx.get(inst.getTarget())));
+		install(MOVE, (Executor<MoveInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), ctx.get(inst.getFrom())));
 		install(GETGLOBAL, (Executor<LoadConstantInstruction>) (inst, ctx) -> {
 			StringConstant constant = (StringConstant) inst.getConstant();
 			ctx.set(inst.getRegister(), ctx.getEnv().get(constant.getValue()));
@@ -51,6 +51,9 @@ public class Interpreter implements Opcodes {
 		install(NEWTABLE, (Executor<NewTableInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), new TableValue(new Table())));
 		install(GETTABLE, new GetTableExecutor());
 		install(SETTABLE, new SetTableExecutor());
+		install(GETUPVAL, (Executor<GetUpvalueInstruction>) (inst, ctx) ->
+				ctx.set(inst.getRegister(), ctx.getClosure().getUpvalue(inst.getUpvalue()))
+		);
 		install(SELF, new SelfExecutor());
 		install(ADD, new ArithExecutor((a, b) -> new NumberValue(a.asNumber() + b.asNumber())));
 		install(SUB, new ArithExecutor((a, b) -> new NumberValue(a.asNumber() - b.asNumber())));
@@ -82,15 +85,13 @@ public class Interpreter implements Opcodes {
 			}
 		});
 		install(CALL, new CallExecutor());
+		install(TAILCALL, new TailCallExecutor());
 		install(RETURN, new ReturnExecutor());
 		install(FORLOOP, new ForLoopExecutor());
 		install(FORPREP, new ForPrepExecutor());
 		install(TFORLOOP, new TForLoopExecutor());
 		install(SETLIST, new SetListExecutor());
-		install(CLOSURE, (Executor<ClosureInstruction>) (inst, ctx) -> ctx.set(
-				inst.getRegister(),
-				new ClosureValue(new Closure(inst.getFunction(), ctx.getEnv())) // inherit env from current function
-		));
+		install(CLOSURE, new ClosureExecutor());
 		install(VARARG, new VarArgExecutor());
 	}
 
