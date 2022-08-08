@@ -162,6 +162,24 @@ public class BaseLibrary extends Library {
 		return 1;
 	}
 
+	public int ipairs(ExecutionContext ctx) {
+		int i = (int) ctx.get(1).asNumber();
+		TableValue tv = (TableValue) ctx.get(0);
+		Table table = tv.getTable();
+		i++;
+		ctx.push(new NumberValue(i));
+		Value v = table.arrayGet(i - 1);
+		ctx.push(v);
+		return v.isNil() ? 0 : 2;
+	}
+
+	public int lua_ipairs(ExecutionContext ctx) {
+		ctx.push(new ClosureValue(new Closure(this::ipairs, ctx.getEnv())));
+		ctx.push(ctx.get(0));
+		ctx.push(new NumberValue(0));
+		return 3;
+	}
+
 
 
 }

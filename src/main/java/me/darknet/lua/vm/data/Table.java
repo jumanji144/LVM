@@ -70,4 +70,15 @@ public class Table {
 	public boolean hasMetatable() {
 		return metatable != null;
 	}
+
+	public int getArrayIndex(Value key) {
+		if(key.isNil()) return -1;
+		int index = array.indexOf(key);
+		return -1;
+	}
+
+	public Value arrayGet(int i) {
+		if(i >= array.size()) return NilValue.NIL;
+		return array.get(i);
+	}
 }
