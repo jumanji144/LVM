@@ -2,10 +2,11 @@ package me.darknet.lua.vm.data;
 
 import lombok.Getter;
 import me.darknet.lua.file.function.LuaFunction;
-import me.darknet.lua.vm.Interpreter;
 import me.darknet.lua.vm.execution.ExecutionContext;
+import me.darknet.lua.vm.value.Value;
 
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -17,6 +18,7 @@ public class Closure {
 	Table env;
 	LuaFunction luaFunction;
 	Function<ExecutionContext, Integer> javaFunction;
+	List<Value> upvalues = new ArrayList<>();
 
 	public Closure(LuaFunction function, Table env) {
 		this.luaFunction = function;
@@ -30,6 +32,14 @@ public class Closure {
 
 	public boolean isLuaFunction() {
 		return luaFunction != null;
+	}
+
+	public void setUpvalue(int index, Value value) {
+		upvalues.add(index, value);
+	}
+
+	public Value getUpvalue(int index) {
+		return upvalues.get(index);
 	}
 
 }

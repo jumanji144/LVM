@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.file.instructions.Argument;
+import me.darknet.lua.file.instructions.Instruction;
 import me.darknet.lua.vm.VM;
 import me.darknet.lua.vm.VMException;
 import me.darknet.lua.vm.VMHelper;
@@ -154,5 +155,9 @@ public class ExecutionContext {
 
 	public int incPc() {
 		return pc++;
+	}
+
+	public Instruction nextInstruction() {
+		return function.getInstructions().get(incPc());
 	}
 }
