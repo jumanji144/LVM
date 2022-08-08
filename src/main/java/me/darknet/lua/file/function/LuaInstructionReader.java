@@ -31,9 +31,9 @@ public class LuaInstructionReader implements Opcodes {
 			int Bx = Opcodes.getArgBx(opcode);
 			int sBx = Opcodes.getArgsBx(opcode);
 			Instruction inst = switch (op) {
-				case LOADNIL,
-						MOVE,
-						GETUPVAL -> new LoadInstruction(op, A, B);
+				case LOADNIL -> new LoadInstruction(op, A, B);
+				case MOVE -> new MoveInstruction(A, B);
+				case GETUPVAL -> new GetUpvalueInstruction(A, B);
 				case LOADK -> new LoadConstantInstruction(op, A, Bx, function.getConstants().get(Bx));
 				case GETGLOBAL -> new GetGlobalInstruction(A, Bx, function.getConstants().get(Bx));
 				case LOADBOOL -> new LoadBoolInstruction(A, B, C);

@@ -67,7 +67,7 @@ int GETTABLE = 	0x06; // A B C | R(A) := R(B)[R(C)]
 
 // ? = R(A)
 int SETGLOBAL = 0x07; // A Bx | Gbl[Kst(Bx)] := R(A)
-int SETUPVAL = 	0x08; // A B | UpValue[B] := R(A)
+int SETUPVAL = 	0x08; // A B | UpValue[B] := R(A) (unused)
 int SETTABLE = 	0x09; // A B C | R(A)[RK(B)] := RK(C)
 
 int NEWTABLE = 	0x0A; // A B C | R(A) := {} (size = B,C)
