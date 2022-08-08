@@ -66,10 +66,26 @@ public class Interpreter implements Opcodes {
 		install(EQ, new CompExecutor(Double::equals));
 		install(LT, new CompExecutor((a, b) -> a < b));
 		install(LE, new CompExecutor((a, b) -> a <= b));
+		install(TEST, (Executor<TestInstruction>) (inst, ctx) -> {
+			Value a = ctx.get(inst.getA());
+			boolean c = (inst.getB() == 0);
+			boolean b = a.isNil() || (!a.asBoolean());
+			if(c == b) ctx.incPc();
+		});
+		install(TESTSET, (Executor<TestSetInstruction>) (inst, ctx) -> {
+			Value a = ctx.get(inst.getB());
+			boolean c = (inst.getB() == 0);
+			boolean b = a.isNil() || (!a.asBoolean());
+			if(c == b) {
+				ctx.set(inst.getA(), a);
+				ctx.incPc();
+			}
+		});
 		install(CALL, new CallExecutor());
 		install(RETURN, new ReturnExecutor());
 		install(FORLOOP, new ForLoopExecutor());
 		install(FORPREP, new ForPrepExecutor());
+		install(TFORLOOP, new TForLoopExecutor());
 		install(SETLIST, new SetListExecutor());
 		install(CLOSURE, (Executor<ClosureInstruction>) (inst, ctx) -> ctx.set(
 				inst.getRegister(),
