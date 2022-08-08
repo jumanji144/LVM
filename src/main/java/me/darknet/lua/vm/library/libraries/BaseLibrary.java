@@ -1,12 +1,14 @@
 package me.darknet.lua.vm.library.libraries;
 
 import me.darknet.lua.vm.data.Closure;
+import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.library.Library;
-import me.darknet.lua.vm.value.BooleanValue;
-import me.darknet.lua.vm.value.ClosureValue;
-import me.darknet.lua.vm.value.StringValue;
-import me.darknet.lua.vm.value.Value;
+import me.darknet.lua.vm.value.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class BaseLibrary extends Library {
 
@@ -89,6 +91,75 @@ public class BaseLibrary extends Library {
 		}
 		System.out.println(sb);
 		return 0; // no return values
+	}
+
+	public int lua_pairs(ExecutionContext ctx) {
+		ctx.push(this.get("next"));
+		ctx.push(ctx.get(0));
+		ctx.push(NilValue.NIL);
+		return 3;
+	}
+
+	public int lua_next(ExecutionContext ctx) {
+		Value value = ctx.get(0);
+		if(value.getType() != Type.TABLE) ctx.throwError("bad argument #1 to 'next' (table expected)");
+		Value key = ctx.has(1) ? ctx.get(1) : NilValue.NIL;
+		TableValue tv = (TableValue) value;
+		Table table = tv.getTable();
+		if(key.isNil()) {
+			// return first key
+			if(table.getArray().size() != 0) {
+				// return the last element
+				ctx.push(new NumberValue(table.getArray().size() - 1));
+				ctx.push(table.getArray().get(table.getArray().size() - 1));
+				return 2;
+			} else {
+				// return the first key in the hashmap
+				for(String k : table.getTable().keySet()) {
+					ctx.push(new StringValue(k));
+					ctx.push(table.get(k));
+					return 2;
+				}
+			}
+		} else {
+			// if it is a number then access array part
+			if(key.getType() == Type.NUMBER) {
+				int index = (int) key.asNumber();
+				if(index > 0 && index < table.getArray().size()) {
+					// now get the next element in the array, if the key is the last element then return nil
+					ctx.push(new NumberValue(index + 1));
+					if(index + 1 < table.getArray().size()) {
+						ctx.push(table.getArray().get(index + 1));
+					} else {
+						ctx.push(NilValue.NIL);
+					}
+				} else {
+					ctx.throwError("invalid key to 'next'");
+				}
+			} else {
+				// try to find the key in the hashmap
+				String keyStr = key.asString();
+				// the keys are searched in reverse order
+				Map<String, Value> map = table.getTable();
+				List<String> keys = new ArrayList<>(map.keySet());
+				for (int i = 0; i < keys.size(); i++) {
+					String k = keys.get(i);
+					if(k.equals(keyStr)) {
+						if(i + 1 < keys.size()) {
+							ctx.push(new StringValue(keys.get(i + 1)));
+							ctx.push(map.get(keys.get(i + 1)));
+						} else {
+							ctx.push(NilValue.NIL);
+							return 1;
+						}
+						return 2;
+					}
+
+				}
+			}
+		}
+		ctx.push(NilValue.NIL);
+		return 1;
 	}
 
 

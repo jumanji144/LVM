@@ -29,6 +29,7 @@ public class Library {
 	private final Map<String, Value> constants = new HashMap<>();
 	@Setter
 	private VM vm;
+	private Table table;
 
 	public Library(String name) {
 		this.name = name;
@@ -46,6 +47,10 @@ public class Library {
 
 	public void set(String name, Value value) {
 		constants.put(name, value);
+	}
+
+	public Value get(String index) {
+		return table.get(index);
 	}
 
 	public ClosureValue newClosure(Function<ExecutionContext, Integer> function) {
@@ -79,6 +84,7 @@ public class Library {
 		Table table = new Table();
 		methods.forEach((name, value) -> table.set(name, new ClosureValue(new Closure(value, null))));
 		constants.forEach(table::set);
+		this.table = table;
 		return table;
 	}
 
