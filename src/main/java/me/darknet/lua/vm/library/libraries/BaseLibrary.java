@@ -56,12 +56,16 @@ public class BaseLibrary extends Library {
 	}
 
 	public int lua_getfenv(ExecutionContext ctx) {
-		Value value = ctx.getRequired(0);
-		if(value.getType() != Type.FUNCTION) {
-			ctx.throwError("bad argument #1 to 'getfenv' (function expected)");
+		if(ctx.has(0)) {
+			Value value = ctx.getRequired(0);
+			if (value.getType() != Type.FUNCTION) {
+				ctx.throwError("bad argument #1 to 'getfenv' (function expected)");
+			}
+			ClosureValue closure = (ClosureValue) value;
+			ctx.push(new TableValue(closure.getClosure().getEnv()));
+		} else {
+			ctx.push(new TableValue(ctx.getEnv()));
 		}
-		ClosureValue closure = (ClosureValue) value;
-		ctx.push(new TableValue(closure.getClosure().getEnv()));
 		return 1;
 	}
 
