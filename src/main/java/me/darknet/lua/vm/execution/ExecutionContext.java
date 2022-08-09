@@ -111,6 +111,12 @@ public class ExecutionContext {
 		}
 	}
 
+	public void checkStack(int size) {
+		if (top + size > stack.length) {
+			ensureSize(top + size);
+		}
+	}
+
 	public VMHelper getHelper() {
 		return vm.getHelper();
 	}
