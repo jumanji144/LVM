@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static me.darknet.lua.vm.value.NilValue.NIL;
+
 public class BaseLibrary extends Library {
 
 	private static final String VERSION = "Lua 5.1";
@@ -29,7 +31,67 @@ public class BaseLibrary extends Library {
 			}
 			ctx.throwError(msg);
 		}
-		return ctx.getTop();
+		return ctx.size();
+	}
+
+	public int lua_collectgarbage(ExecutionContext ctx) {
+		ctx.push(new NumberValue(0));
+		return 1;
+	}
+
+	public int lua_dofile(ExecutionContext ctx) {
+		return ctx.size();
+	}
+
+	public int lua_error(ExecutionContext ctx) {
+		int level = ctx.optionalInt(2, 1);
+		String msg = ctx.optionalString(1, "an error occurred");
+		ctx.throwError(msg);
+		return 0; // execution quits
+	}
+
+	public int lua_gcinfo(ExecutionContext ctx) {
+		ctx.push(new NumberValue(0));
+		return 1;
+	}
+
+	public int lua_getfenv(ExecutionContext ctx) {
+		Value value = ctx.getRequired(0);
+		if(value.getType() != Type.FUNCTION) {
+			ctx.throwError("bad argument #1 to 'getfenv' (function expected)");
+		}
+		ClosureValue closure = (ClosureValue) value;
+		ctx.push(new TableValue(closure.getClosure().getEnv()));
+		return 1;
+	}
+
+	public int lua_getmetatable(ExecutionContext ctx) {
+		Table meta = ctx.getHelper().getMetatable(ctx.getRequired(0));
+		if(meta == null) {
+			ctx.push(NIL);
+		} else {
+			// check if __metatable field exists
+			if(meta.has("__metatable")) {
+				ctx.push(meta.get("__metatable"));
+			} else {
+				ctx.push(new TableValue(meta));
+			}
+		}
+		return 1;
+	}
+
+	public int lua_setmetatable(ExecutionContext ctx) {
+		Value table = ctx.getRequired(0);
+		Value meta = ctx.getRequired(1);
+		if(meta.getType() != Type.NIL && meta.getType() != Type.TABLE) {
+			ctx.throwError("bad argument #2 to 'setmetatable' (nil or table expected)");
+		}
+		if(!ctx.getHelper().attemptFindMetaobject(table, "__metatable").isNil()) {
+			ctx.throwError("cannot change a protected metatable");
+		}
+		ctx.getHelper().setMetatable(ctx, table, meta);
+		ctx.push(table);
+		return 1;
 	}
 
 	public int lua_pcall(ExecutionContext ctx) {
@@ -96,14 +158,14 @@ public class BaseLibrary extends Library {
 	public int lua_pairs(ExecutionContext ctx) {
 		ctx.push(this.get("next"));
 		ctx.push(ctx.get(0));
-		ctx.push(NilValue.NIL);
+		ctx.push(NIL);
 		return 3;
 	}
 
 	public int lua_next(ExecutionContext ctx) {
 		Value value = ctx.get(0);
 		if(value.getType() != Type.TABLE) ctx.throwError("bad argument #1 to 'next' (table expected)");
-		Value key = ctx.has(1) ? ctx.get(1) : NilValue.NIL;
+		Value key = ctx.has(1) ? ctx.get(1) : NIL;
 		TableValue tv = (TableValue) value;
 		Table table = tv.getTable();
 		if(key.isNil()) {
@@ -131,7 +193,7 @@ public class BaseLibrary extends Library {
 					if(index + 1 < table.getArray().size()) {
 						ctx.push(table.getArray().get(index + 1));
 					} else {
-						ctx.push(NilValue.NIL);
+						ctx.push(NIL);
 					}
 				} else {
 					ctx.throwError("invalid key to 'next'");
@@ -149,7 +211,7 @@ public class BaseLibrary extends Library {
 							ctx.push(new StringValue(keys.get(i + 1)));
 							ctx.push(map.get(keys.get(i + 1)));
 						} else {
-							ctx.push(NilValue.NIL);
+							ctx.push(NIL);
 							return 1;
 						}
 						return 2;
@@ -158,7 +220,7 @@ public class BaseLibrary extends Library {
 				}
 			}
 		}
-		ctx.push(NilValue.NIL);
+		ctx.push(NIL);
 		return 1;
 	}
 
