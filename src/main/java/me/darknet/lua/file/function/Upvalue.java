@@ -33,4 +33,9 @@ public class Upvalue {
 	public int getKind() {
 		return kind;
 	}
+
+	@Override
+	public String toString() {
+		return "Upvalue [name=" + name + ", instack=" + instack + ", idx=" + idx + ", kind=" + kind + "]";
+	}
 }
