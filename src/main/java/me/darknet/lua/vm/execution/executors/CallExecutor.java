@@ -23,7 +23,7 @@ public class CallExecutor implements Executor<CallInstruction> {
 		ctx.getHelper().invoke(newCtx);
 
 		ctx.setStack(newCtx.getStack());
-		ctx.setTop(newCtx.getTop());
+		if(inst.getNumReturns() == 0) ctx.setTop(newCtx.getTop());
 
 	}
 }
