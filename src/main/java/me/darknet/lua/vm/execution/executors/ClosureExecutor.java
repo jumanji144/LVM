@@ -21,6 +21,7 @@ public class ClosureExecutor implements Executor<ClosureInstruction> {
 		// this process might seem like a hack, but it is how the lua VM actually does it
 		// so the upvalues are set via 'instructions' instead of directly in the closure,
 		// so we iterate over the next instructions and set the upvalues accordingly
+		ctx.set(inst.getRegister(), new ClosureValue(cl)); // preset the closure in the register so upvalues can reference it
 		ctx.incPc();
 		for (int i = 0; i < numUps; i++) {
 			// get next instruction
@@ -34,6 +35,5 @@ public class ClosureExecutor implements Executor<ClosureInstruction> {
 			}
 		}
 		ctx.setPc(ctx.getPc() - 1);
-		ctx.set(inst.getRegister(), new ClosureValue(cl));
 	}
 }
