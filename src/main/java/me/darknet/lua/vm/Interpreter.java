@@ -69,14 +69,14 @@ public class Interpreter implements Opcodes {
 		install(LEN, new LenExecutor());
 		install(CONCAT, new ConcatExecutor());
 		install(JMP, (Executor<JumpInstruction>) (inst, ctx) -> ctx.setPc(ctx.getPc() + inst.getOffset()));
-		install(EQ, new CompExecutor(Double::equals));
-		install(LT, new CompExecutor((a, b) -> a < b));
-		install(LE, new CompExecutor((a, b) -> a <= b));
+		install(EQ, new CompExecutor((ctx, a, b) -> ctx.getHelper().equals(ctx, a, b)));
+		install(LT, new CompExecutor((ctx, a, b) -> ctx.getHelper().lessThen(ctx, a, b)));
+		install(LE, new CompExecutor((ctx, a, b) -> ctx.getHelper().lessEqual(ctx, a, b)));
 		install(TEST, (Executor<TestInstruction>) (inst, ctx) -> {
 			Value a = ctx.get(inst.getA());
 			boolean c = (inst.getB() == 0);
-			boolean b = a.isNil() || (!a.asBoolean());
-			if(c == b) ctx.incPc();
+			boolean b = a.asBoolean();
+			if(b == c) ctx.incPc();
 		});
 		install(TESTSET, (Executor<TestSetInstruction>) (inst, ctx) -> {
 			Value a = ctx.get(inst.getB());
