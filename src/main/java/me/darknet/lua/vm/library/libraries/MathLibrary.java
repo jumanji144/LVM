@@ -185,7 +185,7 @@ public class MathLibrary extends Library {
 			}
 			case 1 -> { // upper limit
 				int upper = (int) ctx.getRequired(0).asNumber();
-				if (1 <= upper) ctx.throwError("bad argument 1 interval is empty");
+				if (upper <= 1) ctx.throwError("bad argument 1 interval is empty");
 				ctx.push(new NumberValue(Math.floor(number * upper) + 1));
 				return 1;
 			}
