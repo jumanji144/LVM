@@ -3,7 +3,6 @@ package me.darknet.lua.vm;
 import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
-import me.darknet.lua.vm.data.UserData;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.value.*;
 
@@ -22,6 +21,7 @@ public class VMHelper {
 		ctx.setEnv(env);
 		ctx.setVm(vm);
 		ctx.setFunction(function);
+		ctx.setClosure(new Closure(function, env));
 		interpreter.execute(ctx, function);
 		return ctx;
 	}
@@ -66,8 +66,19 @@ public class VMHelper {
 
 		invoke(ctx, ctx.getTop() - 3, 1); // call the function
 
-		ctx.setTop(ctx.getTop() - 1); // pop the function
+		ctx.setTop(ctx.getTop() - 1); // remove the function
 		ctx.setRaw(res, ctx.getRaw(ctx.getTop())); // set the result
+
+	}
+
+	public void callMetamethod(ExecutionContext ctx, Value function, Value arg1, Value arg2, Value arg3) {
+
+		ctx.push(function); // push the function to be called
+		ctx.push(arg1); // first arg
+		ctx.push(arg2); // second arg
+		ctx.push(arg3); // third arg
+
+		invoke(ctx, ctx.getTop() - 4, 0); // call the function
 	}
 
 	public boolean attemptMetamethod(ExecutionContext ctx, Value obj1, Value obj2, int res, String metamethod) {
@@ -79,23 +90,43 @@ public class VMHelper {
 	}
 
 	public Value attemptFindMetaobject(Value v, String method) {
-		Table meta = switch (v.getType()) {
+		Table meta = getMetatable(v);
+		return meta != null ? meta.get(method) : NilValue.NIL;
+	}
+
+	public Table getMetatable(Value value) {
+		switch (value.getType()) {
 			case TABLE -> {
-				TableValue t = (TableValue) v;
-				yield t.getTable().getMetatable();
+				TableValue t = (TableValue) value;
+				return t.getTable().getMetatable();
 			}
 			case USERDATA -> {
-				UserDataValue u = (UserDataValue) v;
-				yield u.getValue().getMetatable();
+				UserDataValue u = (UserDataValue) value;
+				return u.getValue().getMetatable();
 			}
 			default -> {
 				Table global = vm.getGlobal();
-				Value res = global.get(v.getType().getName()); // get metatable
-				if(res.isNil() || res.getType() != Type.TABLE) yield null;
-				yield ((TableValue) res).getTable();
- 			}
-		};
-		return meta != null ? meta.get(method) : NilValue.NIL;
+				Value res = global.get(value.getType().getName()); // get metatable
+				if(res.isNil() || res.getType() != Type.TABLE) return null;
+				return ((TableValue) res).getTable();
+			}
+		}
+	}
+
+	public void setMetatable(ExecutionContext ctx, Value table, Value meta) {
+		// TODO: cleanup
+		Table mt = null;
+		if(meta.isNil()) {
+		} else if(meta.getType() == Type.TABLE) {
+			mt = ((TableValue) meta).getTable();
+		} else {
+			ctx.throwError("metatable must be a table or nil");
+		}
+		switch (table.getType()) {
+			case TABLE -> ((TableValue) table).getTable().setMetatable(mt);
+			case USERDATA -> ((UserDataValue) table).getValue().setMetatable(mt);
+			default -> ctx.getVm().getGlobal().set(table.getType().getName(), meta);
+		}
 	}
 
 	private int adjustVarargs(ExecutionContext ctx, LuaFunction function, int actual) {
@@ -171,19 +202,18 @@ public class VMHelper {
 
 	public void finish(ExecutionContext ctx, ExecutionContext oldCtx) {
 		ctx.setStack(oldCtx.getStack());
-		ctx.setTop(oldCtx.getTop());
 	}
 
 	public void getTable(ExecutionContext ctx, Value value, Value indexValue, int register) {
 		for(int i = 0; i < 30; i++) {
 			if (value.getType() == Type.TABLE) {
 				Table table = ((TableValue) value).getTable();
-				Value res = tableGet(table, indexValue);
 				if (table.hasMetatable() && table.getMetatable().has("__index")) { // does table have index meta function
 					Value obj = table.getMetatable().get("__index");
 					ctx.getHelper().callMetamethod(ctx, register, obj, value, indexValue); // call it
 				} else { // or else instead
 					// set the register to the result
+					Value res = tableGet(table, indexValue);
 					ctx.setRaw(register, res); // set raw because register is already offset
 				}
 				return;
@@ -209,7 +239,41 @@ public class VMHelper {
 		};
 	}
 
-	public void callMetaMethod(Value value, String name, Value... args) {
+	public void setTable(ExecutionContext ctx, Value value, Value indexValue, Value newValue) {
+		for(int i = 0; i < 30; i++) {
+			if (value.getType() == Type.TABLE) {
+				Table table = ((TableValue) value).getTable();
+				Table meta = table.getMetatable();
+				if(meta != null && table.getMetatable().has("__newindex")) {
+					Value obj = table.getMetatable().get("__newindex");
+					ctx.getHelper().callMetamethod(ctx, obj, value, indexValue, newValue); // call it
+					return;
+				} else {
+					tableSet(ctx, table, indexValue, newValue);
+				}
+				return;
+			} else { // get the meta object
+				Value obj = attemptFindMetaobject(value, "__newindex");
+				if (obj.isNil()) {
+					ctx.throwError("attempt to index a " + value.getType().getName() + " value");
+				}
+				if (obj.getType() == Type.FUNCTION) {
+					ctx.getHelper().callMetamethod(ctx, obj, value, indexValue, newValue); // call it
+					return;
+				}
+				value = obj; // attempt to get the value again
+			}
+		}
 	}
 
+	public void tableSet(ExecutionContext ctx, Table table, Value key, Value newValue) {
+		switch (key.getType()) {
+			case STRING -> table.set(key.asString(), newValue);
+			case NUMBER -> table.getArray().set((int) key.asNumber() - 1, newValue); // -1 because Lua arrays are 1-based
+			default -> ctx.throwError("attempt to index a " + key.getType().getName() + " value");
+		}
+	}
+
+	public void callMetaMethod(Value value, String name, Value... args) {
+	}
 }

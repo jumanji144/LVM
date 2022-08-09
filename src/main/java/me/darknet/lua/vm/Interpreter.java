@@ -9,6 +9,7 @@ import me.darknet.lua.vm.error.Error;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.execution.Executor;
 import me.darknet.lua.vm.execution.executors.*;
+import me.darknet.lua.vm.util.ConstantConversion;
 import me.darknet.lua.vm.value.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +36,14 @@ public class Interpreter implements Opcodes {
 	void installAll() {
 		install(MOVE, (Executor<MoveInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), ctx.get(inst.getFrom())));
 		install(GETGLOBAL, (Executor<LoadConstantInstruction>) (inst, ctx) -> {
-			StringConstant constant = (StringConstant) inst.getConstant();
-			ctx.set(inst.getRegister(), ctx.getEnv().get(constant.getValue()));
+			// TODO: optimize this
+			TableValue table = new TableValue(ctx.getEnv());
+			ctx.getHelper().getTable(ctx, table, ConstantConversion.toValue(inst.getConstant()), ctx.reg(inst.getRegister()));
 		});
 		install(SETGLOBAL, (Executor<SetGlobalInstruction>) (inst, ctx) -> {
-			StringConstant constant = (StringConstant) inst.getConstant();
-			ctx.getEnv().set(constant.getValue(), ctx.get(inst.getRegister()));
+			// TODO: optimize this
+			TableValue table = new TableValue(ctx.getEnv());
+			ctx.getHelper().setTable(ctx, table, ConstantConversion.toValue(inst.getConstant()), ctx.get(inst.getRegister()));
 		});
 		install(LOADK, new LoadConstantExecutor());
 		install(LOADBOOL, (Executor<LoadBoolInstruction>) (inst, ctx) -> {
