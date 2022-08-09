@@ -60,6 +60,8 @@ public class VMHelper {
 
 	public void callMetamethod(ExecutionContext ctx, int res, Value function, Value arg1, Value arg2) {
 
+		ctx.checkStack(3); // make room for 3 args
+
 		ctx.push(function); // push the function to be called
 		ctx.push(arg1); // first arg
 		ctx.push(arg2); // second arg
@@ -72,6 +74,8 @@ public class VMHelper {
 	}
 
 	public void callMetamethod(ExecutionContext ctx, Value function, Value arg1, Value arg2, Value arg3) {
+
+		ctx.checkStack(4); // make room for 4 args
 
 		ctx.push(function); // push the function to be called
 		ctx.push(arg1); // first arg
@@ -206,63 +210,52 @@ public class VMHelper {
 
 	public void getTable(ExecutionContext ctx, Value value, Value indexValue, int register) {
 		for(int i = 0; i < 30; i++) {
+			Value tm = NilValue.NIL;
 			if (value.getType() == Type.TABLE) {
 				Table table = ((TableValue) value).getTable();
-				if (table.hasMetatable() && table.getMetatable().has("__index")) { // does table have index meta function
-					Value obj = table.getMetatable().get("__index");
-					ctx.getHelper().callMetamethod(ctx, register, obj, value, indexValue); // call it
-				} else { // or else instead
+				Value res = tableGet(table, indexValue);
+				if (!res.isNil() || !table.hasMetaobject("__index")) {
 					// set the register to the result
-					Value res = tableGet(table, indexValue);
 					ctx.setRaw(register, res); // set raw because register is already offset
-				}
-				return;
-			} else { // get the meta object
-				Value obj = attemptFindMetaobject(value, "__index");
-				if (obj.isNil()) {
-					ctx.throwError("attempt to index a " + value.getType().getName() + " value");
-				}
-				if (obj.getType() == Type.FUNCTION) {
-					ctx.getHelper().callMetamethod(ctx, register, obj, value, indexValue); // call it
 					return;
 				}
-				value = obj; // attempt to get the value again
+			} else if((tm = attemptFindMetaobject(value, "__index")).isNil()) {
+				ctx.throwError("attempt to index a " + value.getType().getName() + " value");
 			}
+			if (tm.getType() == Type.FUNCTION) {
+				ctx.getHelper().callMetamethod(ctx, register, tm, value, indexValue); // call it
+				return;
+			}
+			value = tm; // attempt to get the value again
 		}
 	}
 
 	public Value tableGet(Table table, Value key) {
 		return switch (key.getType()) {
 			case STRING -> table.get(key.asString());
-			case NUMBER -> table.getArray().get((int) key.asNumber() - 1); // -1 because Lua arrays are 1-based
+			case NUMBER -> table.get((int) key.asNumber() - 1); // -1 because Lua arrays are 1-based
 			default -> NilValue.NIL;
 		};
 	}
 
 	public void setTable(ExecutionContext ctx, Value value, Value indexValue, Value newValue) {
 		for(int i = 0; i < 30; i++) {
+			Value tm = NilValue.NIL;
 			if (value.getType() == Type.TABLE) {
 				Table table = ((TableValue) value).getTable();
-				Table meta = table.getMetatable();
-				if(meta != null && table.getMetatable().has("__newindex")) {
-					Value obj = table.getMetatable().get("__newindex");
-					ctx.getHelper().callMetamethod(ctx, obj, value, indexValue, newValue); // call it
-					return;
-				} else {
+				Value oldValue = tableGet(table, indexValue);
+				if(!oldValue.isNil() || (table.getMetatable() != null && (tm = table.getMetatable().get("__newindex")).isNil())) {
 					tableSet(ctx, table, indexValue, newValue);
-				}
-				return;
-			} else { // get the meta object
-				Value obj = attemptFindMetaobject(value, "__newindex");
-				if (obj.isNil()) {
-					ctx.throwError("attempt to index a " + value.getType().getName() + " value");
-				}
-				if (obj.getType() == Type.FUNCTION) {
-					ctx.getHelper().callMetamethod(ctx, obj, value, indexValue, newValue); // call it
 					return;
 				}
-				value = obj; // attempt to get the value again
+			} else if((tm = attemptFindMetaobject(value, "__newindex")).isNil()) {
+				ctx.throwError("attempt to index a " + tm.getType().getName() + " value");
 			}
+			if (tm.getType() == Type.FUNCTION) {
+				ctx.getHelper().callMetamethod(ctx, tm, value, indexValue, newValue); // call it
+				return;
+			}
+			value = tm; // attempt to get the value again
 		}
 	}
 
@@ -274,6 +267,76 @@ public class VMHelper {
 		}
 	}
 
-	public void callMetaMethod(Value value, String name, Value... args) {
+	public boolean isFalse(Value value) {
+		return value.isNil() || (value instanceof BooleanValue && !((BooleanValue) value).isValue());
+	}
+
+	public boolean lessThen(ExecutionContext ctx, Value a, Value b) {
+		// assume that both types are the same
+		return switch (a.getType()) {
+			case NUMBER -> a.asNumber() < b.asNumber();
+			case STRING -> a.asString().compareTo(b.asString()) < 0;
+			default -> {
+				// attempt to call __lt
+				Value tm = attemptFindMetaobject(a, "__lt");
+				Value tm2 = attemptFindMetaobject(b, "__lt");
+				if(tm.isNil()) {
+					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
+					yield false;
+				}
+				if(tm != tm2) {
+					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
+					yield false;
+				}
+				ctx.getHelper().callMetamethod(ctx, ctx.getTop(), tm, a, b); // call it
+				boolean res = !isFalse(ctx.get(ctx.getTop())); // return the result
+				yield res;
+
+			}
+		};
+	}
+
+	public boolean lessEqual(ExecutionContext ctx, Value a, Value b) {
+		// assume that both types are the same
+		return switch (a.getType()) {
+			case NUMBER -> a.asNumber() <= b.asNumber();
+			case STRING -> a.asString().compareTo(b.asString()) <= 0;
+			default -> {
+				// attempt to call __le
+				Value tm = attemptFindMetaobject(a, "__le");
+				Value tm2 = attemptFindMetaobject(b, "__le");
+				if(tm.isNil()) {
+					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
+					yield false;
+				}
+				if(tm != tm2) {
+					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
+					yield false;
+				}
+				callMetamethod(ctx, ctx.getTop(), tm, a, b); // call it
+				boolean res = !isFalse(ctx.get(ctx.getTop()));
+				yield res; // return the result
+			}
+		};
+	}
+
+	public boolean equals(ExecutionContext ctx, Value a, Value b) {
+		Value tm;
+		switch (a.getType()) {
+			case NIL: return true; // nil is equal to nil
+			case NUMBER: return a.asNumber() == b.asNumber();
+			case BOOLEAN: return a.asBoolean() == b.asBoolean();
+			case STRING: return a.asString().equals(b.asString());
+			case USERDATA:
+			case TABLE: {
+				if(a == b) return true;
+				tm = attemptFindMetaobject(a, "__eq");
+				break;
+			}
+			default: return a == b;
+		}
+		if(tm.isNil()) return false;
+		callMetamethod(ctx, ctx.getTop(), tm, a, b); // call it
+		return !isFalse(ctx.get(ctx.getTop())); // return the result
 	}
 }
