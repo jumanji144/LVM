@@ -38,5 +38,12 @@ public class StringValue implements Value{
 		return Type.STRING;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof StringValue){
+			return value.equals(((StringValue) obj).getValue());
+		}
+		return false;
+	}
 }
 

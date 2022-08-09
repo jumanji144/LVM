@@ -31,4 +31,12 @@ public class BooleanValue implements Value {
 	public Type getType() {
 		return Type.BOOLEAN;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof BooleanValue){
+			return value == ((BooleanValue) obj).value;
+		}
+		return false;
+	}
 }

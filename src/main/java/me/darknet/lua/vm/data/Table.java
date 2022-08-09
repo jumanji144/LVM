@@ -57,6 +57,13 @@ public class Table {
 		return v == null ? NilValue.NIL : v;
 	}
 
+	public Value get(int index) {
+		if(index >= array.size()) {
+			return NilValue.NIL;
+		}
+		return array.get(index);
+	}
+
 	public boolean has(String key) {
 		return table.containsKey(key);
 	}
@@ -69,6 +76,9 @@ public class Table {
 
 	public boolean hasMetatable() {
 		return metatable != null;
+	}
+	public boolean hasMetaobject(String key) {
+		return metatable != null && metatable.has(key);
 	}
 
 	public int getArrayIndex(Value key) {

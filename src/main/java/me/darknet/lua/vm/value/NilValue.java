@@ -16,7 +16,7 @@ public class NilValue implements Value {
 
 	@Override
 	public boolean asBoolean() {
-		throw new UnsupportedOperationException("Nil cannot be a boolean");
+		return false;
 	}
 
 	@Override

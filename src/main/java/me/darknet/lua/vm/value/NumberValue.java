@@ -39,4 +39,12 @@ public class NumberValue implements Value{
 	public Type getType() {
 		return Type.NUMBER;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof NumberValue){
+			return value == ((NumberValue) obj).value;
+		}
+		return false;
+	}
 }
