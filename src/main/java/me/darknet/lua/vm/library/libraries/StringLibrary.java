@@ -92,4 +92,69 @@ public class StringLibrary extends Library {
 		return 1;
 	}
 
+	public boolean isFormatModifier(char c) {
+		return c == '-' || c == '#' || c == '0' || c == ' ' || c == '+';
+	}
+
+	public void sprintf(StringBuilder buffer, String fmt, Object... args) {
+		buffer.append(String.format(fmt, args));
+	}
+
+	public String qoute(String value) {
+		char[] chars = value.toCharArray();
+		StringBuilder builder = new StringBuilder();
+		for (char c : chars) {
+			builder.append(switch (c) {
+				case '"', '\\', '\n' -> ('\\' + c);
+				case 'r' -> "\\r";
+				case '\0' -> "\\000";
+				default -> c;
+			});
+		}
+		return builder.toString();
+	}
+
+	public int lua_format(ExecutionContext ctx) {
+		String format = ctx.getRequired(0).asString();
+		int argSize = ctx.size();
+		int arg = 0;
+		StringBuilder output = new StringBuilder();
+		char[] chars = format.toCharArray();
+		int i = 0;
+		while (i < chars.length) {
+			if(chars[i] != '%') output.append(chars[i++]);
+			else if(chars[++i] == '%') output.append(chars[i++]);
+			else {
+				if(++arg > argSize) ctx.throwError("bad argument #" + arg + " to 'format' (too few arguments)");
+				// parse format
+				String fmt = "%";
+				int formBegin = i;
+				while(i < chars.length && isFormatModifier(chars[i])) i++;
+				char c = chars[i];
+				if(Character.isDigit(c)) c = chars[++i];
+				if(Character.isDigit(c)) c = chars[++i]; // at most 2 width digits
+				if(c == '.') { // precision
+					c = chars[++i];
+					if(Character.isDigit(c)) c = chars[++i];
+					if(Character.isDigit(c)) c = chars[++i]; // at most 2 precision digits
+				}
+				if(Character.isDigit(c)) ctx.throwError("invalid format (width or precision too long)");
+				for (int j = formBegin; j < i + 1; j++) {
+					fmt += chars[j];
+				}
+				switch (chars[i++]) {
+					case 'c' -> sprintf(output, fmt, (char) ctx.get(arg).asNumber());
+					case 'd', 'i' -> sprintf(output, fmt, (long) ctx.get(arg).asNumber());
+					case 'o', 'u', 'x', 'X' -> sprintf(output, fmt, (long) ctx.get(arg).asNumber());
+					case 'e', 'E', 'f', 'g', 'G' -> sprintf(output, fmt, ctx.get(arg).asNumber());
+					case 'q' -> sprintf(output, fmt, qoute(ctx.get(arg).asString()));
+					case 's' -> sprintf(output, fmt, ctx.get(arg).asString());
+					default -> ctx.throwError("invalid option '" + chars[i - 1] + "' to 'format'");
+				}
+			}
+		}
+		ctx.push(new StringValue(output.toString()));
+		return 1;
+	}
+
 }
