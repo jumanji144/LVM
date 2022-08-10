@@ -244,7 +244,7 @@ public class VMHelper {
 			if (value.getType() == Type.TABLE) {
 				Table table = ((TableValue) value).getTable();
 				Value oldValue = tableGet(table, indexValue);
-				if(!oldValue.isNil() || (table.getMetatable() != null && (tm = table.getMetatable().get("__newindex")).isNil())) {
+				if(!oldValue.isNil() || !table.hasMetaobject("__index")) {
 					tableSet(ctx, table, indexValue, newValue);
 					return;
 				}
@@ -262,7 +262,7 @@ public class VMHelper {
 	public void tableSet(ExecutionContext ctx, Table table, Value key, Value newValue) {
 		switch (key.getType()) {
 			case STRING -> table.set(key.asString(), newValue);
-			case NUMBER -> table.getArray().set((int) key.asNumber() - 1, newValue); // -1 because Lua arrays are 1-based
+			case NUMBER -> table.set((int) key.asNumber() - 1, newValue); // -1 because Lua arrays are 1-based
 			default -> ctx.throwError("attempt to index a " + key.getType().getName() + " value");
 		}
 	}
