@@ -13,7 +13,7 @@ public class ConstantConversion {
 	public static Value toValue(Constant constant) {
 		return switch (constant.getType()) {
 			case TNIL -> NilValue.NIL;
-			case TBOOLEAN -> new BooleanValue(((BooleanConstant) constant).getValue());
+			case TBOOLEAN -> BooleanValue.valueOf(((BooleanConstant) constant).getValue());
 			case TNUMBER -> new NumberValue(((NumberConstant) constant).getValue());
 			case TSTRING -> new StringValue(((StringConstant) constant).getValue());
 			default -> throw new IllegalArgumentException("Unsupported constant type: " + constant.getType());

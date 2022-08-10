@@ -35,20 +35,12 @@ public class Interpreter implements Opcodes {
 
 	void installAll() {
 		install(MOVE, (Executor<MoveInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), ctx.get(inst.getFrom())));
-		install(GETGLOBAL, (Executor<LoadConstantInstruction>) (inst, ctx) -> {
-			// TODO: optimize this
-			TableValue table = new TableValue(ctx.getEnv());
-			ctx.getHelper().getTable(ctx, table, ConstantConversion.toValue(inst.getConstant()), ctx.reg(inst.getRegister()));
-		});
-		install(SETGLOBAL, (Executor<SetGlobalInstruction>) (inst, ctx) -> {
-			// TODO: optimize this
-			TableValue table = new TableValue(ctx.getEnv());
-			ctx.getHelper().setTable(ctx, table, ConstantConversion.toValue(inst.getConstant()), ctx.get(inst.getRegister()));
-		});
+		install(GETGLOBAL, new GetGlobalExecutor());
+		install(SETGLOBAL, new SetGlobalExecutor());
 		install(LOADK, new LoadConstantExecutor());
 		install(LOADBOOL, (Executor<LoadBoolInstruction>) (inst, ctx) -> {
 			if(inst.getCondition() != 0) ctx.setPc(ctx.getPc() + 1);
-			ctx.set(inst.getRegister(), new BooleanValue(inst.getValue()));
+			ctx.set(inst.getRegister(), BooleanValue.valueOf(inst.getValue()));
 		});
 		install(LOADNIL, (Executor<LoadInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), NilValue.NIL));
 		install(NEWTABLE, (Executor<NewTableInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), new TableValue(new Table())));

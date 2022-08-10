@@ -12,6 +12,7 @@ import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.error.Error;
 import me.darknet.lua.vm.util.ConstantConversion;
+import me.darknet.lua.vm.value.TableValue;
 import me.darknet.lua.vm.value.Value;
 
 @Getter
@@ -27,6 +28,7 @@ public class ExecutionContext {
 	int functionReturn;
 	boolean returning;
 	Table env;
+	Value envValue;
 	LuaFunction function;
 	Closure closure;
 	Closure caller;
@@ -85,6 +87,11 @@ public class ExecutionContext {
 			stack = newStack;
 		}
 		this.top = top;
+	}
+
+	public void setEnv(Table env) {
+		this.env = env;
+		this.envValue = new TableValue(env);
 	}
 
 	// helper methods

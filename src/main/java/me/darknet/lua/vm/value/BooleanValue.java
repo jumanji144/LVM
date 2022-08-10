@@ -4,6 +4,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class BooleanValue implements Value {
+
+	public final static BooleanValue TRUE = new BooleanValue(true);
+	public final static BooleanValue FALSE = new BooleanValue(false);
+
+	public static BooleanValue valueOf(boolean value) {
+		return value ? TRUE : FALSE;
+	}
+
 	@Getter
 	@Setter
 	private boolean value;
