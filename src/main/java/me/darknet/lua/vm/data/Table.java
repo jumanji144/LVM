@@ -52,6 +52,14 @@ public class Table {
 		table.put(key, value);
 	}
 
+	public void set(int index, Value value) {
+		if(index >= array.size()) {
+			array.add(index, value);
+		} else {
+			array.set(index, value);
+		}
+	}
+
 	public Value get(String value) {
 		Value v = table.get(value);
 		return v == null ? NilValue.NIL : v;
