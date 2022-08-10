@@ -130,7 +130,7 @@ public class Interpreter implements Opcodes {
 				}
 				throw e;
 			} catch (Exception e) {
-				throw e;
+				throw new VMException(ctx, e);
 			}
 
 			if(ctx.isReturning()) return;

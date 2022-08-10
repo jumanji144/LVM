@@ -25,10 +25,18 @@ public class Main {
 		vm.initialize();
 		System.out.println("Executing... ");
 		try {
-			ExecutionContext result = vm.getHelper().invoke(luaFile.getFunction(), vm.getGlobal());
+			long start = System.nanoTime();
+ 			ExecutionContext result = vm.getHelper().invoke(luaFile.getFunction(), vm.getGlobal());
+			long end = System.nanoTime();
+			System.out.println("Executed in " + (float) (end - start) / 1000000 + "ms");
+			return;
 		} catch (VMException e) {
 			System.out.println(e.getMessage());
 			System.out.println(e.constructStackTrace());
+			e.printStackTrace();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
