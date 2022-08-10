@@ -3,6 +3,7 @@ package me.darknet.lua.file;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -44,21 +45,20 @@ public class LuaDataStream{
 	}
 
 	public long readLong() throws IOException {
-		// little endian
-		long a1 = readInteger();
-		long a2 = readInteger();
-		if(LE) return (a1 << 32) | a2;
-		return (a2 << 32) | a1;
+		// we need to use byte buffer to read long
+		byte[] a = new byte[8];
+		stream.read(a);
+		ByteBuffer b = ByteBuffer.wrap(a).order(!LE ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
+		return b.getLong();
 	}
 
 	public float readFloat() throws IOException {
-		long bits = readInteger();
-		return Float.intBitsToFloat((int) bits);
+		return Float.intBitsToFloat(readInteger());
 	}
 
 	public double readDouble() throws IOException {
-		long bits = readLong();
-		return Double.longBitsToDouble(bits);
+		long l = readLong();
+		return Double.longBitsToDouble(l);
 	}
 
 	public long readSize() throws IOException {
