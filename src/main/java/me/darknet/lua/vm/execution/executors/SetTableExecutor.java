@@ -1,10 +1,8 @@
 package me.darknet.lua.vm.execution.executors;
 
 import me.darknet.lua.file.instructions.SetTableInstruction;
-import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.execution.Executor;
-import me.darknet.lua.vm.value.TableValue;
 import me.darknet.lua.vm.value.Value;
 
 public class SetTableExecutor implements Executor<SetTableInstruction> {

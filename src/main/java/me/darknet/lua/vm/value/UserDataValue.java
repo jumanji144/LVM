@@ -3,7 +3,7 @@ package me.darknet.lua.vm.value;
 import lombok.Getter;
 import me.darknet.lua.vm.data.UserData;
 
-public class UserDataValue implements Value{
+public class UserDataValue implements Value {
 
 	@Getter
 	UserData value;

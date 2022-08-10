@@ -59,16 +59,16 @@ public class Library {
 
 	public void collect() {
 		for (Method declaredMethod : getClass().getDeclaredMethods()) {
-			if(declaredMethod.getName().startsWith("lua_")) {
+			if (declaredMethod.getName().startsWith("lua_")) {
 				methods.put(declaredMethod.getName().substring(4), (ctx) -> {
 					try {
 						Object returnValue = declaredMethod.invoke(this, ctx);
-						if(returnValue == null) {
+						if (returnValue == null) {
 							logger.error("Method {} returned null (not a int method)", declaredMethod.getName());
 							throw new RuntimeException("Method returned null");
 						} else return (int) returnValue;
 					} catch (InvocationTargetException e) {
-						if(e.getCause() instanceof VMException vm) {
+						if (e.getCause() instanceof VMException vm) {
 							throw vm;
 						}
 						throw new RuntimeException(e);

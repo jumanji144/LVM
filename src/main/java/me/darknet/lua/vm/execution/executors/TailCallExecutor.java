@@ -14,7 +14,7 @@ public class TailCallExecutor implements Executor<CallInstruction> {
 		Closure cl = closure.getClosure();
 
 		int register = ctx.getBase() + inst.getRegister();
-		if(inst.getNumArgs() != 0) ctx.setTop(register + inst.getNumArgs());
+		if (inst.getNumArgs() != 0) ctx.setTop(register + inst.getNumArgs());
 
 		ExecutionContext newCtx = ctx.getHelper().prepareCtx(ctx, cl, register, inst.getNumReturns() - 1);
 

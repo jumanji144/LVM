@@ -20,7 +20,7 @@ public class LuaFile {
 
 	public String getLuaVersion() {
 		// version is (MAJOR * 16) + MINOR
- 		int major = version / 16;
+		int major = version / 16;
 		int minor = version % 16;
 		return String.format("%d.%d", major, minor);
 	}

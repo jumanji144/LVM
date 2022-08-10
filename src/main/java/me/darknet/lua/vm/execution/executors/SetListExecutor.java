@@ -14,7 +14,7 @@ public class SetListExecutor implements Executor<SetListInstruction> {
 		int amount = inst.getAmount();
 		int offset = inst.getOffset();
 
-		if(amount == 0) {
+		if (amount == 0) {
 			amount = (ctx.getTop() - ctx.reg(inst.getRegister())) - 1;
 		}
 

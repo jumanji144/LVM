@@ -3,7 +3,7 @@ package me.darknet.lua.file.instructions;
 import lombok.Getter;
 
 @Getter
-public class LoadBoolInstruction extends LoadInstruction{
+public class LoadBoolInstruction extends LoadInstruction {
 
 	int register;
 	int value;

@@ -26,10 +26,9 @@ public class Main {
 		System.out.println("Executing... ");
 		try {
 			long start = System.nanoTime();
- 			ExecutionContext result = vm.getHelper().invoke(luaFile.getFunction(), vm.getGlobal());
+			ExecutionContext result = vm.getHelper().invoke(luaFile.getFunction(), vm.getGlobal());
 			long end = System.nanoTime();
 			System.out.println("Executed in " + (float) (end - start) / 1000000 + "ms");
-			return;
 		} catch (VMException e) {
 			System.out.println(e.getMessage());
 			System.out.println(e.constructStackTrace());

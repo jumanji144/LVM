@@ -2,12 +2,10 @@ package me.darknet.lua.vm.library.libraries;
 
 import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
-import me.darknet.lua.vm.library.Libraries;
 import me.darknet.lua.vm.library.Library;
 import me.darknet.lua.vm.value.NumberValue;
 import me.darknet.lua.vm.value.StringValue;
 import me.darknet.lua.vm.value.TableValue;
-import me.darknet.lua.vm.value.Value;
 
 public class StringLibrary extends Library {
 
@@ -39,7 +37,7 @@ public class StringLibrary extends Library {
 	public int lua_reverse(ExecutionContext ctx) {
 		String value = ctx.getRequired(0).asString();
 		StringBuilder reversed = new StringBuilder();
-		for(int i = value.length() - 1; i >= 0; i--) {
+		for (int i = value.length() - 1; i >= 0; i--) {
 			reversed.append(value.charAt(i));
 		}
 		ctx.push(new StringValue(reversed.toString()));
@@ -62,7 +60,7 @@ public class StringLibrary extends Library {
 		String value = ctx.getRequired(0).asString();
 		int count = (int) ctx.getRequired(1).asNumber();
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			builder.append(value);
 		}
 		ctx.push(new StringValue(builder.toString()));
@@ -73,9 +71,9 @@ public class StringLibrary extends Library {
 		String value = ctx.getRequired(0).asString();
 		int start = ctx.optionalInt(1, 1);
 		int end = ctx.optionalInt(2, start);
-		if(start <= 0) start = 1;
-		if(end > value.length()) end = value.length();
-		if(start > end) return 0;
+		if (start <= 0) start = 1;
+		if (end > value.length()) end = value.length();
+		if (start > end) return 0;
 		for (int i = start - 1; i < end; i++) {
 			ctx.push(new NumberValue(value.charAt(i)));
 		}
@@ -85,7 +83,7 @@ public class StringLibrary extends Library {
 	public int lua_char(ExecutionContext ctx) {
 		int count = ctx.size();
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			builder.append((char) ctx.get(i).asNumber());
 		}
 		ctx.push(new StringValue(builder.toString()));
@@ -122,23 +120,23 @@ public class StringLibrary extends Library {
 		char[] chars = format.toCharArray();
 		int i = 0;
 		while (i < chars.length) {
-			if(chars[i] != '%') output.append(chars[i++]);
-			else if(chars[++i] == '%') output.append(chars[i++]);
+			if (chars[i] != '%') output.append(chars[i++]);
+			else if (chars[++i] == '%') output.append(chars[i++]);
 			else {
-				if(++arg > argSize) ctx.throwError("bad argument #" + arg + " to 'format' (too few arguments)");
+				if (++arg > argSize) ctx.throwError("bad argument #" + arg + " to 'format' (too few arguments)");
 				// parse format
 				String fmt = "%";
 				int formBegin = i;
-				while(i < chars.length && isFormatModifier(chars[i])) i++;
+				while (i < chars.length && isFormatModifier(chars[i])) i++;
 				char c = chars[i];
-				if(Character.isDigit(c)) c = chars[++i];
-				if(Character.isDigit(c)) c = chars[++i]; // at most 2 width digits
-				if(c == '.') { // precision
+				if (Character.isDigit(c)) c = chars[++i];
+				if (Character.isDigit(c)) c = chars[++i]; // at most 2 width digits
+				if (c == '.') { // precision
 					c = chars[++i];
-					if(Character.isDigit(c)) c = chars[++i];
-					if(Character.isDigit(c)) c = chars[++i]; // at most 2 precision digits
+					if (Character.isDigit(c)) c = chars[++i];
+					if (Character.isDigit(c)) c = chars[++i]; // at most 2 precision digits
 				}
-				if(Character.isDigit(c)) ctx.throwError("invalid format (width or precision too long)");
+				if (Character.isDigit(c)) ctx.throwError("invalid format (width or precision too long)");
 				for (int j = formBegin; j < i + 1; j++) {
 					fmt += chars[j];
 				}

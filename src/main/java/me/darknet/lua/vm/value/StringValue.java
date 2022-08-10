@@ -3,13 +3,13 @@ package me.darknet.lua.vm.value;
 import lombok.Getter;
 import lombok.Setter;
 
-public class StringValue implements Value{
+public class StringValue implements Value {
 
 	@Getter
 	@Setter
 	private String value;
 
-	public StringValue(String value){
+	public StringValue(String value) {
 		this.value = value;
 	}
 
@@ -40,7 +40,7 @@ public class StringValue implements Value{
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof StringValue){
+		if (obj instanceof StringValue) {
 			return value.equals(((StringValue) obj).getValue());
 		}
 		return false;

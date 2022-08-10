@@ -4,13 +4,13 @@ import lombok.Getter;
 import lombok.Setter;
 import me.darknet.lua.vm.util.StringUtil;
 
-public class NumberValue implements Value{
+public class NumberValue implements Value {
 
 	@Setter
 	@Getter
 	double value;
 
-	public NumberValue(double value){
+	public NumberValue(double value) {
 		this.value = value;
 	}
 
@@ -42,7 +42,7 @@ public class NumberValue implements Value{
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof NumberValue){
+		if (obj instanceof NumberValue) {
 			return value == ((NumberValue) obj).value;
 		}
 		return false;

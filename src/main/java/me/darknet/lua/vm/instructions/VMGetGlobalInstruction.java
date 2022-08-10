@@ -3,7 +3,6 @@ package me.darknet.lua.vm.instructions;
 import lombok.Getter;
 import me.darknet.lua.file.constant.Constant;
 import me.darknet.lua.file.instructions.GetGlobalInstruction;
-import me.darknet.lua.file.instructions.LoadConstantInstruction;
 import me.darknet.lua.vm.util.ConstantConversion;
 import me.darknet.lua.vm.value.Value;
 

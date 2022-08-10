@@ -1,6 +1,6 @@
 package me.darknet.lua.file.constant;
 
-public class Constant implements ConstantTypes{
+public class Constant implements ConstantTypes {
 
 	private final int type;
 

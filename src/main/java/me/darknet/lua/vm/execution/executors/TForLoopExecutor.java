@@ -21,8 +21,8 @@ public class TForLoopExecutor implements Executor<ForLoopInstruction> {
 		ctx.getHelper().invoke(ctx, callBase, inst.getOffset()); // offset is in this case numRet
 		ctx.setTop(oldTop); // restore old state
 		Value value = ctx.getRaw(callBase); // get result value
-		if(!value.isNil()) {
-			ctx.setRaw(callBase - 1,  value); // control value
+		if (!value.isNil()) {
+			ctx.setRaw(callBase - 1, value); // control value
 		} else {
 			// skip next instruction
 			ctx.incPc();

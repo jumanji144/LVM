@@ -7,7 +7,7 @@ package me.darknet.lua.file.instructions;
  * LOADNIL
  * MOVE
  */
-public class LoadInstruction extends Instruction{
+public class LoadInstruction extends Instruction {
 
 	int register;
 	int target;
@@ -28,6 +28,6 @@ public class LoadInstruction extends Instruction{
 
 	@Override
 	public String print() {
-		return getLine() + ": "  + getOpcodeName() + " R(" + getRegister() + ") := " + getTarget();
+		return getLine() + ": " + getOpcodeName() + " R(" + getRegister() + ") := " + getTarget();
 	}
 }

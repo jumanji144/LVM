@@ -3,7 +3,7 @@ package me.darknet.lua.file.instructions;
 import lombok.Getter;
 
 @Getter
-public class CloseInstruction extends Instruction{
+public class CloseInstruction extends Instruction {
 
 	int register;
 

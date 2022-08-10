@@ -3,7 +3,7 @@ package me.darknet.lua.file.instructions;
 import lombok.Getter;
 import me.darknet.lua.file.constant.Constant;
 
-public class SetGlobalInstruction extends SetInstruction{
+public class SetGlobalInstruction extends SetInstruction {
 
 	@Getter
 	Constant constant;

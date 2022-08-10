@@ -13,7 +13,7 @@ public class ForLoopExecutor implements Executor<ForLoopInstruction> {
 		double limit = ctx.get(inst.getRegister() + 1).asNumber(); // limit is the second register
 		NumberValue idx = (NumberValue) ctx.get(inst.getRegister()); // idx is the first register
 		idx.setValue(idx.getValue() + step); // increment the index
-		if(0 < step ? limit >= idx.getValue() : limit <= idx.getValue()) { // is withing limit range?
+		if (0 < step ? limit >= idx.getValue() : limit <= idx.getValue()) { // is withing limit range?
 			ctx.setPc(ctx.getPc() + inst.getOffset()); // if so, continue
 			ctx.set(inst.getRegister(), idx); // set the index back to the register
 			ctx.set(inst.getRegister() + 3, new NumberValue(idx.getValue())); // set the index back to the register

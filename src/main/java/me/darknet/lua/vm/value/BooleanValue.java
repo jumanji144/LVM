@@ -42,7 +42,7 @@ public class BooleanValue implements Value {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof BooleanValue){
+		if (obj instanceof BooleanValue) {
 			return value == ((BooleanValue) obj).value;
 		}
 		return false;

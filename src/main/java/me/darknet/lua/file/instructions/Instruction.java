@@ -1,6 +1,6 @@
 package me.darknet.lua.file.instructions;
 
-public class Instruction implements Opcodes{
+public class Instruction implements Opcodes {
 
 	int opcode;
 	int line;

@@ -28,7 +28,7 @@ public class VMHelper {
 
 	public void invoke(ExecutionContext ctx) {
 		Closure cl = ctx.getClosure();
-		if(cl.isLuaFunction()) {
+		if (cl.isLuaFunction()) {
 			LuaFunction function = cl.getLuaFunction();
 			interpreter.execute(ctx, function);
 		} else {
@@ -50,7 +50,7 @@ public class VMHelper {
 		// emulate the stack layout of a function call
 		int register = ctx.getTop();
 		ctx.push(new ClosureValue(cl));
-		for(Value arg : args) {
+		for (Value arg : args) {
 			ctx.push(arg);
 		}
 		// top should already be adjusted
@@ -87,8 +87,8 @@ public class VMHelper {
 
 	public boolean attemptMetamethod(ExecutionContext ctx, Value obj1, Value obj2, int res, String metamethod) {
 		Value meta = attemptFindMetaobject(obj1, metamethod);
-		if(meta.isNil()) meta = attemptFindMetaobject(obj2, metamethod);
-		if(meta.isNil()) return false;
+		if (meta.isNil()) meta = attemptFindMetaobject(obj2, metamethod);
+		if (meta.isNil()) return false;
 		callMetamethod(ctx, res, meta, obj1, obj2);
 		return true;
 	}
@@ -111,7 +111,7 @@ public class VMHelper {
 			default -> {
 				Table global = vm.getGlobal();
 				Value res = global.get(value.getType().getName()); // get metatable
-				if(res.isNil() || res.getType() != Type.TABLE) return null;
+				if (res.isNil() || res.getType() != Type.TABLE) return null;
 				return ((TableValue) res).getTable();
 			}
 		}
@@ -120,8 +120,8 @@ public class VMHelper {
 	public void setMetatable(ExecutionContext ctx, Value table, Value meta) {
 		// TODO: cleanup
 		Table mt = null;
-		if(meta.isNil()) {
-		} else if(meta.getType() == Type.TABLE) {
+		if (meta.isNil()) {
+		} else if (meta.getType() == Type.TABLE) {
 			mt = ((TableValue) meta).getTable();
 		} else {
 			ctx.throwError("metatable must be a table or nil");
@@ -137,13 +137,13 @@ public class VMHelper {
 		int numFixed = function.getNumParams();
 		int base, fixed;
 
-		for(; actual < numFixed; actual++) {
+		for (; actual < numFixed; actual++) {
 			ctx.push(NilValue.NIL);
 		}
 
 		fixed = ctx.getTop() - actual;
 		base = ctx.getTop();
-		for(int i = 0; i < numFixed; i++) {
+		for (int i = 0; i < numFixed; i++) {
 			ctx.push(ctx.getRaw(fixed + i));
 			ctx.setRaw(fixed + i, NilValue.NIL);
 		}
@@ -153,13 +153,13 @@ public class VMHelper {
 
 	public ExecutionContext prepareCtx(ExecutionContext parent, Closure cl, int func, int numResults) {
 		ExecutionContext newCtx;
-		if(cl.isLuaFunction()) { // is lua function
+		if (cl.isLuaFunction()) { // is lua function
 			LuaFunction function = cl.getLuaFunction();
 			int base;
 			int top = parent.getTop();
-			if(!function.isVararg()) {
+			if (!function.isVararg()) {
 				base = func + 1; // base will be first argument
-				if(top > base + function.getNumParams()) // if top is not already correct
+				if (top > base + function.getNumParams()) // if top is not already correct
 					top = base + function.getNumParams(); // top is end of arguments
 			} else {
 				int args = (parent.getTop() - func) - 1; // number of ACTUAL arguments
@@ -171,7 +171,7 @@ public class VMHelper {
 			// create and clear old stack
 			newCtx.ensureSize(top + function.getMaxStackSize()); // ensure stack is large enough to fit new stack
 			top = base + function.getMaxStackSize(); // top is end of stack
-			for(int st = parent.getTop(); st < top; st++) {
+			for (int st = parent.getTop(); st < top; st++) {
 				newCtx.setRaw(st, NilValue.NIL); // file with nil to mark empty slots
 			}
 			// update correct top pointer
@@ -196,9 +196,9 @@ public class VMHelper {
 		int wanted = ctx.getNumResults();
 
 		int i;
-		for(i = wanted; i != 0 && start < ctx.getTop(); i--)
+		for (i = wanted; i != 0 && start < ctx.getTop(); i--)
 			ctx.setRaw(res++, ctx.getRaw(start++));
-		while(i-- > 0)
+		while (i-- > 0)
 			ctx.setRaw(res++, NilValue.NIL);
 
 		ctx.setTop(res);
@@ -209,7 +209,7 @@ public class VMHelper {
 	}
 
 	public void getTable(ExecutionContext ctx, Value value, Value indexValue, int register) {
-		for(int i = 0; i < 30; i++) {
+		for (int i = 0; i < 30; i++) {
 			Value tm = NilValue.NIL;
 			if (value.getType() == Type.TABLE) {
 				Table table = ((TableValue) value).getTable();
@@ -219,7 +219,7 @@ public class VMHelper {
 					ctx.setRaw(register, res); // set raw because register is already offset
 					return;
 				}
-			} else if((tm = attemptFindMetaobject(value, "__index")).isNil()) {
+			} else if ((tm = attemptFindMetaobject(value, "__index")).isNil()) {
 				ctx.throwError("attempt to index a " + value.getType().getName() + " value");
 			}
 			if (tm.getType() == Type.FUNCTION) {
@@ -239,16 +239,16 @@ public class VMHelper {
 	}
 
 	public void setTable(ExecutionContext ctx, Value value, Value indexValue, Value newValue) {
-		for(int i = 0; i < 30; i++) {
+		for (int i = 0; i < 30; i++) {
 			Value tm = NilValue.NIL;
 			if (value.getType() == Type.TABLE) {
 				Table table = ((TableValue) value).getTable();
 				Value oldValue = tableGet(table, indexValue);
-				if(!oldValue.isNil() || !table.hasMetaobject("__index")) {
+				if (!oldValue.isNil() || !table.hasMetaobject("__index")) {
 					tableSet(ctx, table, indexValue, newValue);
 					return;
 				}
-			} else if((tm = attemptFindMetaobject(value, "__newindex")).isNil()) {
+			} else if ((tm = attemptFindMetaobject(value, "__newindex")).isNil()) {
 				ctx.throwError("attempt to index a " + tm.getType().getName() + " value");
 			}
 			if (tm.getType() == Type.FUNCTION) {
@@ -280,11 +280,11 @@ public class VMHelper {
 				// attempt to call __lt
 				Value tm = attemptFindMetaobject(a, "__lt");
 				Value tm2 = attemptFindMetaobject(b, "__lt");
-				if(tm.isNil()) {
+				if (tm.isNil()) {
 					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
 					yield false;
 				}
-				if(tm != tm2) {
+				if (tm != tm2) {
 					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
 					yield false;
 				}
@@ -305,11 +305,11 @@ public class VMHelper {
 				// attempt to call __le
 				Value tm = attemptFindMetaobject(a, "__le");
 				Value tm2 = attemptFindMetaobject(b, "__le");
-				if(tm.isNil()) {
+				if (tm.isNil()) {
 					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
 					yield false;
 				}
-				if(tm != tm2) {
+				if (tm != tm2) {
 					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
 					yield false;
 				}
@@ -323,19 +323,24 @@ public class VMHelper {
 	public boolean equals(ExecutionContext ctx, Value a, Value b) {
 		Value tm;
 		switch (a.getType()) {
-			case NIL: return true; // nil is equal to nil
-			case NUMBER: return a.asNumber() == b.asNumber();
-			case BOOLEAN: return a.asBoolean() == b.asBoolean();
-			case STRING: return a.asString().equals(b.asString());
+			case NIL:
+				return true; // nil is equal to nil
+			case NUMBER:
+				return a.asNumber() == b.asNumber();
+			case BOOLEAN:
+				return a.asBoolean() == b.asBoolean();
+			case STRING:
+				return a.asString().equals(b.asString());
 			case USERDATA:
 			case TABLE: {
-				if(a == b) return true;
+				if (a == b) return true;
 				tm = attemptFindMetaobject(a, "__eq");
 				break;
 			}
-			default: return a == b;
+			default:
+				return a == b;
 		}
-		if(tm.isNil()) return false;
+		if (tm.isNil()) return false;
 		callMetamethod(ctx, ctx.getTop(), tm, a, b); // call it
 		return !isFalse(ctx.get(ctx.getTop())); // return the result
 	}

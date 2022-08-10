@@ -1,10 +1,9 @@
 package me.darknet.lua.file.instructions;
 
 import lombok.Getter;
-import me.darknet.lua.file.constant.Constant;
 
 @Getter
-public class SetTableInstruction extends Instruction{
+public class SetTableInstruction extends Instruction {
 
 	int register;
 	Argument key;

@@ -7,7 +7,7 @@ import java.util.List;
 
 public class LuaInstructionReader implements Opcodes {
 
-	private LuaFunction function;
+	private final LuaFunction function;
 
 	public LuaInstructionReader(LuaFunction function) {
 		this.function = function;
@@ -64,8 +64,8 @@ public class LuaInstructionReader implements Opcodes {
 				case RETURN -> new ReturnInstruction(A, B);
 				case FORLOOP,
 						TFORLOOP -> new ForLoopInstruction(op,
-								A,
-								op == FORLOOP ? sBx : C);
+						A,
+						op == FORLOOP ? sBx : C);
 				case FORPREP -> new ForPrepInstruction(A, sBx);
 				case SETLIST -> new SetListInstruction(A, B, C);
 				case CLOSE -> new CloseInstruction(A);
@@ -73,8 +73,8 @@ public class LuaInstructionReader implements Opcodes {
 				case VARARG -> new VarArgInstruction(A, B);
 				default -> null;
 			};
-			if(inst == null) continue;
-			if(i < linesSize) {
+			if (inst == null) continue;
+			if (i < linesSize) {
 				inst.setLine(lines.get(i));
 			}
 			output.add(inst);
@@ -84,7 +84,7 @@ public class LuaInstructionReader implements Opcodes {
 	}
 
 	public Argument argument(int arg) {
-		if(Opcodes.isK(arg)) {
+		if (Opcodes.isK(arg)) {
 			int masked = Opcodes.getK(arg);
 			return new Argument(function.getConstants().get(masked));
 		} else {

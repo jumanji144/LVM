@@ -1,15 +1,12 @@
 package me.darknet.lua.vm;
 
-import me.darknet.lua.file.constant.StringConstant;
 import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.file.instructions.*;
-import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.error.Error;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.execution.Executor;
 import me.darknet.lua.vm.execution.executors.*;
-import me.darknet.lua.vm.util.ConstantConversion;
 import me.darknet.lua.vm.value.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class Interpreter implements Opcodes {
 
@@ -39,7 +35,7 @@ public class Interpreter implements Opcodes {
 		install(SETGLOBAL, new SetGlobalExecutor());
 		install(LOADK, new LoadConstantExecutor());
 		install(LOADBOOL, (Executor<LoadBoolInstruction>) (inst, ctx) -> {
-			if(inst.getCondition() != 0) ctx.setPc(ctx.getPc() + 1);
+			if (inst.getCondition() != 0) ctx.setPc(ctx.getPc() + 1);
 			ctx.set(inst.getRegister(), BooleanValue.valueOf(inst.getValue()));
 		});
 		install(LOADNIL, (Executor<LoadInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), NilValue.NIL));
@@ -68,13 +64,13 @@ public class Interpreter implements Opcodes {
 			Value a = ctx.get(inst.getA());
 			boolean c = (inst.getB() == 0);
 			boolean b = a.asBoolean();
-			if(b == c) ctx.incPc();
+			if (b == c) ctx.incPc();
 		});
 		install(TESTSET, (Executor<TestSetInstruction>) (inst, ctx) -> {
 			Value a = ctx.get(inst.getB());
 			boolean c = (inst.getB() == 0);
 			boolean b = a.isNil() || (!a.asBoolean());
-			if(c == b) {
+			if (c == b) {
 				ctx.set(inst.getA(), a);
 				ctx.incPc();
 			}
@@ -93,7 +89,7 @@ public class Interpreter implements Opcodes {
 	public void execute(ExecutionContext ctx, LuaFunction fn) {
 		List<Instruction> instructions = fn.getInstructions();
 
-		while(true) {
+		while (true) {
 			int pc = ctx.getPc();
 			if (pc < 0 || pc >= instructions.size()) {
 				throw new IllegalStateException("pc out of bounds");
@@ -109,14 +105,14 @@ public class Interpreter implements Opcodes {
 				// execute the instruction
 				executor.execute(instruction, ctx);
 			} catch (VMException e) {
-				if(ctx.getError() != null) {
-					if(ctx.getErrorHandler() != null) {
+				if (ctx.getError() != null) {
+					if (ctx.getErrorHandler() != null) {
 						Error error = ctx.getError();
 						int ret = ctx.getHelper().invoke(ctx, ctx.getErrorHandler(), 1, new StringValue(error.print()));
 						ctx.setErrorHandlerReturn(ctx.getRaw(ret));
 						return;
 					}
-					if(ctx.isReturnOnError()) {
+					if (ctx.isReturnOnError()) {
 						return;
 					}
 				}
@@ -125,7 +121,7 @@ public class Interpreter implements Opcodes {
 				throw new VMException(ctx, e);
 			}
 
-			if(ctx.isReturning()) return;
+			if (ctx.isReturning()) return;
 
 			// increment the pc
 			ctx.setPc(ctx.getPc() + 1);

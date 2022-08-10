@@ -3,7 +3,7 @@ package me.darknet.lua.file.instructions;
 import lombok.Getter;
 
 @Getter
-public class SetInstruction extends Instruction{
+public class SetInstruction extends Instruction {
 
 	int target;
 	int register;
@@ -16,6 +16,6 @@ public class SetInstruction extends Instruction{
 
 	@Override
 	public String print() {
-		return getLine() + ": "  + getOpcodeName() + " " + getTarget() + " := R(" + getRegister() + ")";
+		return getLine() + ": " + getOpcodeName() + " " + getTarget() + " := R(" + getRegister() + ")";
 	}
 }

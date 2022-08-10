@@ -6,8 +6,6 @@ import me.darknet.lua.vm.execution.Executor;
 import me.darknet.lua.vm.util.TriExecutor;
 import me.darknet.lua.vm.value.Value;
 
-import java.util.function.BiFunction;
-
 public class CompExecutor implements Executor<CompareInstruction> {
 	TriExecutor comp;
 

@@ -14,9 +14,9 @@ public class ForPrepExecutor implements Executor<ForPrepInstruction> {
 		Value plimit = ctx.get(inst.getRegister() + 1);
 		Value pstep = ctx.get(inst.getRegister() + 2);
 
-		if(initial.getType() != Type.NUMBER) ctx.throwError("for initial value must be a number");
-		if(plimit.getType() != Type.NUMBER) ctx.throwError("for limit value must be a number");
-		if(pstep.getType() != Type.NUMBER) ctx.throwError("for step value must be a number");
+		if (initial.getType() != Type.NUMBER) ctx.throwError("for initial value must be a number");
+		if (plimit.getType() != Type.NUMBER) ctx.throwError("for limit value must be a number");
+		if (pstep.getType() != Type.NUMBER) ctx.throwError("for step value must be a number");
 		// we actually need to subtract 1 step from the initial value because the for loop will increment it
 
 		ctx.set(inst.getRegister(), new NumberValue(initial.asNumber() - pstep.asNumber()));

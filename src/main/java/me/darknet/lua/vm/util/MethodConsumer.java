@@ -9,8 +9,8 @@ public class MethodConsumer<T> implements Consumer<T> {
 	public Object instance;
 
 	public MethodConsumer(Object owner, Method method) {
-		if(method == null) throw new IllegalArgumentException("method cannot be null");
-		if(method.getParameterCount() != 1) throw new IllegalArgumentException("method must have one parameter");
+		if (method == null) throw new IllegalArgumentException("method cannot be null");
+		if (method.getParameterCount() != 1) throw new IllegalArgumentException("method must have one parameter");
 		this.method = method;
 		this.instance = owner;
 	}

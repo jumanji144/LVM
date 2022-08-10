@@ -15,11 +15,11 @@ public class ConcatExecutor implements Executor<ConcatInstruction> {
 
 		StringBuilder builder = new StringBuilder();
 
-		for(int i = begin; i <= end; i++) {
+		for (int i = begin; i <= end; i++) {
 			Value a = ctx.get(i);
 			try {
 				builder.append(a.asString());
-			} catch(Exception e) {
+			} catch (Exception e) {
 				//ctx.throwError("attempt to concatenate a %s value", a.getType().name().toLowerCase());
 				return;
 			}

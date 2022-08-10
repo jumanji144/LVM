@@ -96,7 +96,7 @@ public class ExecutionContext {
 
 	// helper methods
 	public Value getArgument(Argument argument) {
-		if(argument.isConstant()) {
+		if (argument.isConstant()) {
 			return ConstantConversion.toValue(argument.getConstant());
 		} else {
 			return get(argument.getValue());
@@ -131,14 +131,15 @@ public class ExecutionContext {
 	public void insert(int target, int location) {
 		// first move everything to the right
 		for (int i = top + 1; i > location - 1; i--) {
-			stack[i+1] = stack[i];
+			stack[i + 1] = stack[i];
 		}
 		// then insert the value
 		stack[location] = stack[target];
 	}
 
 	public void throwError(String fmt, Object... args) {
-		if(closure.isLuaFunction()) error = new Error(function.getSource(), function.getLine(pc), String.format(fmt, args));
+		if (closure.isLuaFunction())
+			error = new Error(function.getSource(), function.getLine(pc), String.format(fmt, args));
 		else error = new Error("", -1, String.format(fmt, args));
 		throw new VMException(this);
 	}
@@ -148,17 +149,17 @@ public class ExecutionContext {
 	}
 
 	public Value getRequired(int register) {
-		if(!has(register)) throwError("bad argument %d value expected", register);
+		if (!has(register)) throwError("bad argument %d value expected", register);
 		return get(register);
 	}
 
 	public String optionalString(int register, String defaultValue) {
-		if(!has(register)) return defaultValue;
+		if (!has(register)) return defaultValue;
 		return get(register).asString();
 	}
 
 	public int optionalInt(int register, int defaultValue) {
-		if(!has(register)) return defaultValue;
+		if (!has(register)) return defaultValue;
 		return (int) get(register).asNumber();
 	}
 

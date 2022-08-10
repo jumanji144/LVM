@@ -7,7 +7,7 @@ public class Stack {
 	Value[] backing;
 	int sp;
 
-	public Stack(int size){
+	public Stack(int size) {
 		backing = new Value[size];
 		sp = 0;
 	}
@@ -26,16 +26,16 @@ public class Stack {
 
 	public String view() {
 		StringBuilder sb = new StringBuilder();
-		if(sp < 0) {
+		if (sp < 0) {
 			return "[UNDERFLOW]";
 		}
-		if(sp > backing.length) {
+		if (sp > backing.length) {
 			return "[OVERFLOW]";
 		}
 		sb.append("{");
-		for(int i = 0; i < sp; i++) {
+		for (int i = 0; i < sp; i++) {
 			sb.append(backing[i]);
-			if(i < sp - 1) {
+			if (i < sp - 1) {
 				sb.append(", ");
 			}
 		}

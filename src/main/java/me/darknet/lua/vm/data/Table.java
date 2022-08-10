@@ -53,7 +53,7 @@ public class Table {
 	}
 
 	public void set(int index, Value value) {
-		if(index >= array.size()) {
+		if (index >= array.size()) {
 			array.add(index, value);
 		} else {
 			array.set(index, value);
@@ -66,7 +66,7 @@ public class Table {
 	}
 
 	public Value get(int index) {
-		if(index >= array.size()) {
+		if (index >= array.size()) {
 			return NilValue.NIL;
 		}
 		return array.get(index);
@@ -85,18 +85,19 @@ public class Table {
 	public boolean hasMetatable() {
 		return metatable != null;
 	}
+
 	public boolean hasMetaobject(String key) {
 		return metatable != null && metatable.has(key);
 	}
 
 	public int getArrayIndex(Value key) {
-		if(key.isNil()) return -1;
+		if (key.isNil()) return -1;
 		int index = array.indexOf(key);
 		return -1;
 	}
 
 	public Value arrayGet(int i) {
-		if(i >= array.size()) return NilValue.NIL;
+		if (i >= array.size()) return NilValue.NIL;
 		return array.get(i);
 	}
 }

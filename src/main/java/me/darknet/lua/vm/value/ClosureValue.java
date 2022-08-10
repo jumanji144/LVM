@@ -4,11 +4,11 @@ import lombok.Getter;
 import me.darknet.lua.vm.data.Closure;
 
 @Getter
-public class ClosureValue implements Value{
+public class ClosureValue implements Value {
 
 	Closure closure;
 
-	public ClosureValue(Closure closure){
+	public ClosureValue(Closure closure) {
 		this.closure = closure;
 	}
 

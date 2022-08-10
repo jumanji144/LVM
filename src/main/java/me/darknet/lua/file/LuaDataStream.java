@@ -1,13 +1,11 @@
 package me.darknet.lua.file;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class LuaDataStream{
+public class LuaDataStream {
 
 	private int intSize;
 	private int numberSize;
@@ -32,7 +30,7 @@ public class LuaDataStream{
 		// little endian
 		int b1 = readByte();
 		int b2 = readByte();
-		if(LE) return (b1 << 8) | b2;
+		if (LE) return (b1 << 8) | b2;
 		return (b2 << 8) | b1;
 	}
 
@@ -40,7 +38,7 @@ public class LuaDataStream{
 		// little endian
 		int a1 = readShort();
 		int a2 = readShort();
-		if(LE) return (a1 << 16) | a2;
+		if (LE) return (a1 << 16) | a2;
 		return (a2 << 16) | a1;
 	}
 
@@ -90,13 +88,13 @@ public class LuaDataStream{
 
 	public String readString() throws IOException {
 		int size;
-		if(byteSize) {
+		if (byteSize) {
 			size = readByte();
-			if(size == 0xFF) {
+			if (size == 0xFF) {
 				size = (int) readSize();
 			}
-		}else size = (int) this.readSize();
-		if(size == 0) return "";
+		} else size = (int) this.readSize();
+		if (size == 0) return "";
 		byte[] bytes = new byte[size];
 		this.readFully(bytes);
 		// remove last byte because java doesn't expect \0 at the end of a string

@@ -155,7 +155,7 @@ public class MathLibrary extends Library {
 		double min = ctx.getRequired(0).asNumber();
 		for (int i = 2; i < numArgs; i++) {
 			double d = ctx.getRequired(i).asNumber();
-			if(d < min) {
+			if (d < min) {
 				min = d;
 			}
 		}
@@ -168,7 +168,7 @@ public class MathLibrary extends Library {
 		double max = ctx.getRequired(0).asNumber();
 		for (int i = 2; i < numArgs; i++) {
 			double d = ctx.getRequired(i).asNumber();
-			if(d > max) {
+			if (d > max) {
 				max = d;
 			}
 		}
@@ -207,7 +207,6 @@ public class MathLibrary extends Library {
 		random.setSeed((long) ctx.getRequired(0).asNumber());
 		return 0;
 	}
-
 
 
 }

@@ -4,7 +4,7 @@ import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.execution.ExecutionContext;
 
-public class VMException extends RuntimeException{
+public class VMException extends RuntimeException {
 
 	public ExecutionContext ctx;
 	public Exception cause;
@@ -25,7 +25,7 @@ public class VMException extends RuntimeException{
 
 	@Override
 	public String getMessage() {
-		if(ctx.getError() != null)
+		if (ctx.getError() != null)
 			return ctx.getError().getMessage();
 		else
 			return super.getMessage();
@@ -35,14 +35,14 @@ public class VMException extends RuntimeException{
 		StringBuffer sb = new StringBuffer();
 		sb.append("lua stack trace:\n");
 		ExecutionContext ctx = this.ctx;
-		while(ctx != null) {
+		while (ctx != null) {
 			Closure cl = ctx.getClosure();
-			if(cl.isLuaFunction()) {
+			if (cl.isLuaFunction()) {
 				LuaFunction f = cl.getLuaFunction();
 				int pc = ctx.getPc();
 				int line = f.getLine(pc);
 				sb.append(" - ").append(f.getSource()).append(":").append(line);
-				if(ctx.getParent() == null) sb.append(" (main)");
+				if (ctx.getParent() == null) sb.append(" (main)");
 				sb.append("\n");
 			} else {
 				sb.append("\t[java call]");

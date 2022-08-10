@@ -12,9 +12,9 @@ import java.util.Scanner;
 
 public class IoLibrary extends Library {
 
-	private UserDataValue stdin;
-	private UserDataValue stdout;
-	private UserDataValue stderr;
+	private final UserDataValue stdin;
+	private final UserDataValue stdout;
+	private final UserDataValue stderr;
 
 	public IoLibrary() {
 		super("io", "io");
