@@ -17,6 +17,6 @@ public class SelfExecutor implements Executor<SelfInstruction> {
 
 		ctx.set(register + 1, table); // we have copied the table to the next register
 		// now get the table value
-		ctx.getHelper().getTable(ctx, table, ctx.getArgument(inst.getIndex()), register);
+		ctx.getHelper().getTable(ctx, table, ctx.getArgument(inst.getIndex()), ctx.reg(register));
 	}
 }
