@@ -174,4 +174,20 @@ public class ExecutionContext {
 	public Instruction nextInstruction() {
 		return function.getInstructions().get(incPc());
 	}
+
+	public String getSource() {
+		if(closure.isLuaFunction()) {
+			String source = function.getSource();
+			if(source.equals("")) {
+				if(parent != null) {
+					return parent.getSource();
+				} else {
+					return "";
+				}
+			} else {
+				return source;
+			}
+		}
+		return "";
+	}
 }

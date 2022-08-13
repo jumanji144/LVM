@@ -41,11 +41,11 @@ public class VMException extends RuntimeException {
 				LuaFunction f = cl.getLuaFunction();
 				int pc = ctx.getPc();
 				int line = f.getLine(pc);
-				sb.append(" - ").append(f.getSource()).append(":").append(line);
+				sb.append(" - ").append(ctx.getSource()).append(":").append(line);
 				if (ctx.getParent() == null) sb.append(" (main)");
 				sb.append("\n");
 			} else {
-				sb.append("\t[java call]");
+				sb.append("\t[java call]\n");
 			}
 			ctx = ctx.getParent();
 		}
