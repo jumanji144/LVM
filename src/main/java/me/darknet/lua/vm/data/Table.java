@@ -17,18 +17,18 @@ import java.util.Map;
 public class Table {
 
 	Map<String, Value> table = new HashMap<>();
-	List<Value> array = new ArrayList<>();
+	Map<Integer, Value> array = new HashMap<>();
 
 	@Setter
 	Table metatable;
 
 	public void insert(int index, Value value) {
 		// insert value into array part
-		array.add(index, value);
+		array.put(index, value);
 	}
 
 	public void insert(Value value) {
-		array.add(value);
+		array.put(array.size(), value);
 	}
 
 	public void remove(int index) {
@@ -53,11 +53,7 @@ public class Table {
 	}
 
 	public void set(int index, Value value) {
-		if (index >= array.size()) {
-			array.add(index, value);
-		} else {
-			array.set(index, value);
-		}
+		array.put(index, value);
 	}
 
 	public Value get(String value) {
@@ -66,10 +62,7 @@ public class Table {
 	}
 
 	public Value get(int index) {
-		if (index >= array.size()) {
-			return NilValue.NIL;
-		}
-		return array.get(index);
+		return array.getOrDefault(index, NilValue.NIL);
 	}
 
 	public boolean has(String key) {
@@ -90,14 +83,11 @@ public class Table {
 		return metatable != null && metatable.has(key);
 	}
 
-	public int getArrayIndex(Value key) {
-		if (key.isNil()) return -1;
-		int index = array.indexOf(key);
-		return -1;
+	public Value getMetaobject(String key) {
+		return metatable != null ? metatable.get(key) : NilValue.NIL;
 	}
 
 	public Value arrayGet(int i) {
-		if (i >= array.size()) return NilValue.NIL;
-		return array.get(i);
+		return array.getOrDefault(i, NilValue.NIL);
 	}
 }
