@@ -13,6 +13,7 @@ import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.error.Error;
 import me.darknet.lua.vm.util.ConstantConversion;
 import me.darknet.lua.vm.value.TableValue;
+import me.darknet.lua.vm.value.Type;
 import me.darknet.lua.vm.value.Value;
 
 @Getter
@@ -190,4 +191,11 @@ public class ExecutionContext {
 		}
 		return "";
 	}
+
+	public <T extends Value> T checkType(int register, Type type) {
+		Value value = get(register);
+		if (value.getType() != type) throwError("bad argument %d expected %s got %s", register, type.getName(), get(register).getType().getName());
+		return (T) value;
+	}
+
 }

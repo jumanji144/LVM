@@ -38,10 +38,7 @@ public class VMHelper {
 	}
 
 	public void invoke(ExecutionContext ctx, int func, int numResults) {
-		ClosureValue closure = (ClosureValue) ctx.getRaw(func);
-		Closure cl = closure.getClosure();
-
-		ExecutionContext newCtx = prepareCtx(ctx, cl, func, numResults);
+		ExecutionContext newCtx = prepareCtx(ctx, func, numResults);
 		invoke(newCtx);
 		finish(ctx, newCtx);
 	}
@@ -150,7 +147,30 @@ public class VMHelper {
 		return base;
 	}
 
-	public ExecutionContext prepareCtx(ExecutionContext parent, Closure cl, int func, int numResults) {
+	public ExecutionContext prepareCtx(ExecutionContext parent, int func, int numResults) {
+
+		// attempt to resolve the function
+		Closure cl;
+		Value v = parent.getRaw(func);
+		if(v instanceof ClosureValue cv) cl = cv.getClosure();
+		else {
+			// try metatable
+			Value tm = attemptFindMetaobject(v, "__call");
+			if(tm instanceof ClosureValue cv) {
+				// we need to pretend like ths was our actual call
+				// so open a hole in the stack
+				for(int i = parent.getTop(); i > func; i--) {
+					parent.setRaw(i, parent.getRaw(i-1));
+				}
+				parent.setTop(parent.getTop()+1);
+				parent.setRaw(func, cv);
+				cl = cv.getClosure();
+			} else {
+				parent.throwError("attempt to call a nil object");
+				return null;
+			}
+		}
+
 		ExecutionContext newCtx;
 		if (cl.isLuaFunction()) { // is lua function
 			LuaFunction function = cl.getLuaFunction();
@@ -316,6 +336,16 @@ public class VMHelper {
 				boolean res = !isFalse(ctx.get(ctx.getTop()));
 				yield res; // return the result
 			}
+		};
+	}
+
+	public boolean rawEquals(ExecutionContext ctx, Value a, Value b) {
+		return switch (a.getType()) {
+			case NIL -> true; // nil is equal to nil
+			case NUMBER -> a.asNumber() == b.asNumber();
+			case BOOLEAN -> a.asBoolean() == b.asBoolean();
+			case STRING -> a.asString().equals(b.asString());
+			default -> a == b;
 		};
 	}
 

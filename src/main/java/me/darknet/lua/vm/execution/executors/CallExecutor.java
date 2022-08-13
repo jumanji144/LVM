@@ -11,13 +11,10 @@ public class CallExecutor implements Executor<CallInstruction> {
 	@Override
 	public void execute(CallInstruction inst, ExecutionContext ctx) {
 
-		ClosureValue closure = (ClosureValue) ctx.get(inst.getRegister());
-		Closure cl = closure.getClosure();
-
 		int register = ctx.getBase() + inst.getRegister();
 		if (inst.getNumArgs() != 0) ctx.setTop(register + inst.getNumArgs());
 
-		ExecutionContext newCtx = ctx.getHelper().prepareCtx(ctx, cl, register, inst.getNumReturns() - 1);
+		ExecutionContext newCtx = ctx.getHelper().prepareCtx(ctx, register, inst.getNumReturns() - 1);
 
 		ctx.getHelper().invoke(newCtx);
 

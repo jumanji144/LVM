@@ -99,10 +99,7 @@ public class BaseLibrary extends Library {
 	}
 
 	public int lua_pcall(ExecutionContext ctx) {
-		ClosureValue closure = (ClosureValue) ctx.get(0);
-		Closure cl = closure.getClosure();
-
-		ExecutionContext newContext = ctx.getHelper().prepareCtx(ctx, cl, ctx.reg(0), -1);
+		ExecutionContext newContext = ctx.getHelper().prepareCtx(ctx, ctx.reg(0), -1);
 
 		ctx.getHelper().invoke(newContext);
 
@@ -120,15 +117,12 @@ public class BaseLibrary extends Library {
 
 		// TODO: stack offsets are not correct, res1 of errFunc gets put at reg(3) instead of reg(1)
 		// probably requires manual stack management
-
-		ClosureValue closure = (ClosureValue) ctx.get(0);
-		Closure cl = closure.getClosure();
 		ClosureValue errorHandler = (ClosureValue) ctx.get(1);
 		Closure eh = errorHandler.getClosure();
 
 		int top = ctx.getTop(); // remember top
 
-		ExecutionContext newContext = ctx.getHelper().prepareCtx(ctx, cl, ctx.reg(0), -1);
+		ExecutionContext newContext = ctx.getHelper().prepareCtx(ctx, ctx.reg(0), -1);
 		newContext.setErrorHandler(eh);
 
 		ctx.getHelper().invoke(newContext);
@@ -259,6 +253,76 @@ public class BaseLibrary extends Library {
 				ctx.push(NIL);
 			}
 		}
+		return 1;
+	}
+
+	public int lua_unpack(ExecutionContext ctx) {
+		TableValue val = ctx.checkType(0, Type.TABLE);
+		Table table = val.getTable();
+		int start = ctx.optionalInt(1, 1);
+		int end;
+		if(ctx.has(2)) end = (int) ctx.checkType(2, Type.NUMBER).asNumber();
+		else end = table.getArray().size();
+		if (start > end) return 0;  /* empty range */
+		int n = end - start + 1;  /* number of elements */
+		if (n <= 0)  /* n <= 0 means arith. overflow */
+			ctx.throwError("too many results to unpack");
+		ctx.push(table.get(n)); /* push arg[i] (avoiding overflow problems) */
+		while (start++ < end)  /* push arg[i + 1...e] */
+			ctx.push(table.get(start));
+		return n;
+	}
+
+	public int lua_select(ExecutionContext ctx) {
+		int n = ctx.size();
+		Value v = ctx.get(0);
+		if(v instanceof StringValue sv && sv.getValue().charAt(0) == '#') {
+			ctx.push(new NumberValue(n - 1));
+			return 1;
+		} else {
+			int i = (int) ctx.checkType(0, Type.NUMBER).asNumber();
+			if (i < 0) i = n + i;
+			else if (i > n) i = n;
+			if(1 <= i) ctx.throwError("bad argument #1 to 'select'");
+			return n - i;
+		}
+	}
+
+	public int lua_tostring(ExecutionContext ctx) {
+		Value v = ctx.get(0);
+		if(ctx.getHelper().attemptMetamethod(ctx, v, NIL, ctx.reg(0), "__tostring")) return 1;
+		if(v instanceof StringValue) {
+			ctx.push(v);
+		} else {
+			ctx.push(new StringValue(v.toString()));
+		}
+		return 1;
+	}
+
+	public int lua_type(ExecutionContext ctx) {
+		Value v = ctx.get(0);
+		ctx.push(new StringValue(v.getType().getName()));
+		return 1;
+	}
+
+	public int lua_rawget(ExecutionContext ctx) {
+		TableValue val = ctx.checkType(0, Type.TABLE);
+		Table table = val.getTable();
+		ctx.push(table.get(ctx.get(1).asString()));
+		return 1;
+	}
+
+	public int lua_rawset(ExecutionContext ctx) {
+		TableValue val = ctx.checkType(0, Type.TABLE);
+		Table table = val.getTable();
+		table.set(ctx.get(1).asString(), ctx.get(2));
+		return 0;
+	}
+
+	public int lua_rawequal(ExecutionContext ctx) {
+		Value v1 = ctx.get(0);
+		Value v2 = ctx.get(1);
+		ctx.push(BooleanValue.valueOf(ctx.getHelper().rawEquals(ctx, v1, v2)));
 		return 1;
 	}
 
