@@ -22,6 +22,7 @@ public class Main {
 		Disassembler disassembler = new Disassembler(luaFile.getFunction(), System.out);
 		disassembler.disassemble();
 		VM vm = new VM();
+		vm.setProgramArguments(args != null ? args : new String[0]);
 		vm.initialize();
 		System.out.println("Executing... ");
 		try {
