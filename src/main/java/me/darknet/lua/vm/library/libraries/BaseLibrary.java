@@ -246,5 +246,21 @@ public class BaseLibrary extends Library {
 		return 3;
 	}
 
+	public int lua_tonumber(ExecutionContext ctx) {
+		int base = ctx.optionalInt(1, 10);
+		if(base == 10) {
+			ctx.push(new NumberValue(ctx.get(0).asNumber()));
+		} else {
+			if(base >= 36 || base <= 2) ctx.throwError("base out of range");
+			String s = ctx.get(0).asString();
+			try {
+				ctx.push(new NumberValue(Long.parseLong(s, base)));
+			} catch (NumberFormatException e) {
+				ctx.push(NIL);
+			}
+		}
+		return 1;
+	}
+
 
 }
