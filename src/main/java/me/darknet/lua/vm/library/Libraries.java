@@ -3,10 +3,7 @@ package me.darknet.lua.vm.library;
 import lombok.Getter;
 import lombok.Setter;
 import me.darknet.lua.vm.VM;
-import me.darknet.lua.vm.library.libraries.BaseLibrary;
-import me.darknet.lua.vm.library.libraries.IoLibrary;
-import me.darknet.lua.vm.library.libraries.MathLibrary;
-import me.darknet.lua.vm.library.libraries.StringLibrary;
+import me.darknet.lua.vm.library.libraries.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +40,7 @@ public class Libraries {
 		put(new MathLibrary());
 		put(new IoLibrary());
 		put(new StringLibrary());
+		put(new OsLibrary());
 		// collect all libraries
 		base.collect();
 		libraries.values().forEach(Library::collect);
