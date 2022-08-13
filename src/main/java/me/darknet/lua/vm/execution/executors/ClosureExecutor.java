@@ -28,7 +28,7 @@ public class ClosureExecutor implements Executor<ClosureInstruction> {
 			if (next instanceof GetUpvalueInstruction gi) {
 				cl.setUpvalue(i, ctx.getClosure().getUpvalue(gi.getUpvalue()));
 			} else if (next instanceof MoveInstruction mi) {
-				cl.setUpvalue(i, ctx.get(mi.getRegister()));
+				cl.setUpvalue(i, ctx.get(mi.getFrom()));
 			} else {
 				throw new IllegalStateException("Unexpected instruction: " + next);
 			}
