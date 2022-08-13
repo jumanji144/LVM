@@ -68,7 +68,6 @@ public class VMHelper {
 
 		invoke(ctx, ctx.getTop() - 3, 1); // call the function
 
-		ctx.setTop(ctx.getTop() - 1); // remove the function
 		ctx.setRaw(res, ctx.getRaw(ctx.getTop())); // set the result
 
 	}
@@ -210,11 +209,11 @@ public class VMHelper {
 
 	public void getTable(ExecutionContext ctx, Value value, Value indexValue, int register) {
 		for (int i = 0; i < 30; i++) {
-			Value tm = NilValue.NIL;
+			Value tm;
 			if (value.getType() == Type.TABLE) {
 				Table table = ((TableValue) value).getTable();
 				Value res = tableGet(table, indexValue);
-				if (!res.isNil() || !table.hasMetaobject("__index")) {
+				if (!res.isNil() || (tm = table.getMetaobject("__index")).isNil()) {
 					// set the register to the result
 					ctx.setRaw(register, res); // set raw because register is already offset
 					return;
@@ -240,11 +239,11 @@ public class VMHelper {
 
 	public void setTable(ExecutionContext ctx, Value value, Value indexValue, Value newValue) {
 		for (int i = 0; i < 30; i++) {
-			Value tm = NilValue.NIL;
+			Value tm;
 			if (value.getType() == Type.TABLE) {
 				Table table = ((TableValue) value).getTable();
 				Value oldValue = tableGet(table, indexValue);
-				if (!oldValue.isNil() || !table.hasMetaobject("__index")) {
+				if (!oldValue.isNil() || (tm = table.getMetaobject("__newindex")).isNil()) {
 					tableSet(ctx, table, indexValue, newValue);
 					return;
 				}
