@@ -44,8 +44,8 @@ public class BaseLibrary extends Library {
 	}
 
 	public int lua_error(ExecutionContext ctx) {
-		int level = ctx.optionalInt(2, 1);
-		String msg = ctx.optionalString(1, "an error occurred");
+		int level = ctx.optionalInt(1, 1);
+		String msg = ctx.optionalString(0, "an error occurred");
 		ctx.throwError(msg);
 		return 0; // execution quits
 	}
@@ -95,6 +95,12 @@ public class BaseLibrary extends Library {
 		}
 		ctx.getHelper().setMetatable(ctx, table, meta);
 		ctx.push(table);
+		return 1;
+	}
+
+	public int lua_setfenv(ExecutionContext ctx) {
+		TableValue tableValue = ctx.checkType(1, Type.TABLE);
+		ctx.getParent().setEnv(tableValue.getTable());
 		return 1;
 	}
 
