@@ -1,5 +1,6 @@
 package me.darknet.lua.vm.library.libraries;
 
+import me.darknet.lua.file.function.LuaFunction;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
@@ -19,6 +20,13 @@ public class BaseLibrary extends Library {
 	public BaseLibrary() {
 		super("base", "");
 		set("_VERSION", new StringValue(VERSION));
+		Table coroutine = new Table();
+		coroutine.set("create", newClosure(this::co_create));
+		coroutine.set("status", newClosure(this::co_status));
+		coroutine.set("resume", newClosure(this::co_resume));
+		coroutine.set("yield", newClosure(this::co_yield));
+		coroutine.set("wrap", newClosure(this::co_wrap));
+		set("coroutine", new TableValue(coroutine));
 	}
 
 	public int lua_assert(ExecutionContext ctx) {
@@ -332,5 +340,114 @@ public class BaseLibrary extends Library {
 		return 1;
 	}
 
+	// COROUTINES
+	public static final int CO_STATUS_RUNNING = 0;
+	public static final int CO_STATUS_SUSPENDED = 1;
+	public static final int CO_STATUS_NORMAL = 2;
+	public static final int CO_STATUS_DEAD = 3;
+
+	public static final int CO_YIELD = 1;
+	public static final int CO_RUNNING = 0;
+
+	public static String[] CO_STATUS_NAMES = { "running", "suspended", "normal", "dead" };
+
+	public int co_create(ExecutionContext ctx) {
+		// create a new coroutine
+		ClosureValue clv = ctx.checkType(0, Type.FUNCTION);
+		Closure cl = clv.getClosure();
+		LuaFunction fn = cl.getLuaFunction();
+		ExecutionContext co = new ExecutionContext(new Value[fn.getMaxStackSize()]);
+		co.setEnv(ctx.getEnv()); // prepare env
+		co.setClosure(cl);
+		co.setFunction(fn);
+		co.setVm(ctx.getVm());
+		co.set(0, clv);
+		co.setParent(ctx);
+		co.setStatus(CO_STATUS_SUSPENDED);
+		ctx.push(new ThreadValue(co));
+		return 1;
+	}
+
+	public int aux_status(ExecutionContext ctx, ExecutionContext co) {
+		if(co == ctx) return CO_STATUS_RUNNING; // we are the thread
+		switch (co.getStatus()) {
+			case CO_YIELD: return CO_STATUS_SUSPENDED;
+			case CO_RUNNING: {
+				if(co.size() == 0) return CO_STATUS_DEAD; // thread has died
+				else return CO_STATUS_SUSPENDED; // initial state
+			}
+			default: return CO_STATUS_DEAD;
+		}
+	}
+
+	public int co_status(ExecutionContext ctx) {
+		ThreadValue co = ctx.checkType(0, Type.THREAD);
+		ctx.push(new StringValue(CO_STATUS_NAMES[aux_status(ctx, co.getContext())]));
+		return 1;
+	}
+
+	public int aux_resume(ExecutionContext ctx, ExecutionContext co, int numArgs) {
+		int status = aux_status(ctx, co);
+		co.checkStack(numArgs); // ensure co can hold arguments
+		if(status != CO_STATUS_SUSPENDED) {
+			ctx.push(new StringValue("cannot resume " + CO_STATUS_NAMES[status] + " coroutine"));
+			return -1;
+		}
+		// move args
+		for(int i = 0; i < numArgs; i++) {
+			co.push(ctx.get(i + 1));
+		}
+		int res = ctx.getHelper().resume(co, ctx.getTop() - numArgs);
+		if(res == 1) {
+			int nres = co.getNumResults();
+			ctx.checkStack(nres + 1);
+			// move all results to the caller
+			for(int i = 0; i < nres; i++) {
+				ctx.push(co.get(i));
+			}
+			return nres;
+		} else {
+			ctx.push(co.get(0));
+			return -1;
+		}
+
+	}
+
+	public int co_resume(ExecutionContext ctx) {
+		ThreadValue co = ctx.checkType(0, Type.THREAD);
+		int numArgs = ctx.size() - 1;
+		int res = aux_resume(ctx, co.getContext(), numArgs);
+		if (res < 0) {
+			ctx.push(BooleanValue.FALSE);
+			ctx.insert(ctx.reg(0), ctx.reg(1));
+			return 2;
+		} else {
+			ctx.push(BooleanValue.TRUE);
+			ctx.insert(ctx.reg(0), res + 1);
+			return res + 1;
+		}
+	}
+
+	public int co_yield(ExecutionContext ctx) {
+		ctx.setStatus(CO_YIELD);
+		return -1;
+	}
+
+	public int aux_wrap(ExecutionContext ctx) {
+		ThreadValue value = (ThreadValue) ctx.getClosure().getUpvalue(0);
+		int r = aux_resume(ctx, value.getContext(), ctx.size());
+		if(r < 0) {
+			ctx.throwError(ctx.get(0).asString());
+		}
+		return r;
+	}
+
+	public int co_wrap(ExecutionContext ctx) {
+		co_create(ctx); // create coroutine
+		ClosureValue clv = newClosure(this::aux_wrap);
+		clv.getClosure().setUpvalue(0, ctx.get(1)); // give it the coroutine
+		ctx.push(clv);
+		return 1;
+	}
 
 }

@@ -16,7 +16,14 @@ public class CallExecutor implements Executor<CallInstruction> {
 
 		ExecutionContext newCtx = ctx.getHelper().prepareCtx(ctx, register, inst.getNumReturns() - 1);
 
-		ctx.getHelper().invoke(newCtx);
+		int status = ctx.getHelper().invoke(newCtx);
+		if(status < 0) {
+			// yield
+			ctx.setReturning(true);
+			ctx.setNumResults(newCtx.size());
+			ctx.setPc(ctx.getPc() + 1);
+			return;
+		}
 
 		ctx.setStack(newCtx.getStack());
 		if (inst.getNumReturns() == 0) ctx.setTop(newCtx.getTop());

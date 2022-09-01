@@ -6,6 +6,8 @@ import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.value.*;
 
+import static me.darknet.lua.vm.library.libraries.BaseLibrary.CO_RUNNING;
+
 public class VMHelper {
 
 	Interpreter interpreter;
@@ -35,16 +37,19 @@ public class VMHelper {
 	/**
 	 * Invoke an already prepared {@link ExecutionContext}
 	 * @param ctx context to invoke
+	 * @return the status of the call
 	 */
-	public void invoke(ExecutionContext ctx) {
+	public int invoke(ExecutionContext ctx) {
 		Closure cl = ctx.getClosure();
 		if (cl.isLuaFunction()) {
 			LuaFunction function = cl.getLuaFunction();
 			interpreter.execute(ctx, function);
 		} else {
 			int results = cl.getJavaFunction().apply(ctx);
+			if(results < 0) return results;
 			endCtx(ctx, ctx.getTop() - results);
 		}
+		return 1;
 	}
 
 	/**
@@ -534,4 +539,27 @@ public class VMHelper {
 		callMetamethod(ctx, ctx.getTop(), tm, a, b); // call it
 		return !isFalse(ctx.get(ctx.getTop())); // return the result
 	}
+
+	/// COROUTINES
+
+	public int resume(ExecutionContext co, int first) {
+		co.setReturnOnError(true); // catch error here
+		co.setReturning(false);
+		co.setError(null);
+		co.setNumResults(0);
+		Closure cl = co.getClosure(); // get current closure
+		if(co.getStatus() == CO_RUNNING) { // Start the coroutine
+			endCtx(co, first); // will resume from first instruction
+		} else { // resume from previous yield
+			endCtx(co, first);
+		}
+		interpreter.execute(co, cl.getLuaFunction()); // execute the function
+		if(co.getError() != null) {
+			co.push(new StringValue(co.getError().print()));
+			return 2;
+		} else {
+			return 1;
+		}
+	}
+
 }

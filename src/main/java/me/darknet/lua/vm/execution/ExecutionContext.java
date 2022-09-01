@@ -39,6 +39,7 @@ public class ExecutionContext {
 	Closure errorHandler;
 	Value errorHandlerReturn;
 	boolean returnOnError;
+	int status;
 
 	public ExecutionContext(Value[] stack) {
 		this.stack = stack;
@@ -69,6 +70,7 @@ public class ExecutionContext {
 	}
 
 	public void push(Value value) {
+
 		stack[top++] = value;
 	}
 

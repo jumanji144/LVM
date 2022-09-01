@@ -1,6 +1,7 @@
 package me.darknet.lua.vm.execution.executors;
 
 import me.darknet.lua.file.instructions.CompareInstruction;
+import me.darknet.lua.file.instructions.Opcodes;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.execution.Executor;
 import me.darknet.lua.vm.util.TriExecutor;
@@ -18,9 +19,9 @@ public class CompExecutor implements Executor<CompareInstruction> {
 		Value a = ctx.getArgument(inst.getA());
 		Value b = ctx.getArgument(inst.getB());
 		int cond = inst.getRegister();
-		boolean result = comp.accept(ctx, a, b);
+		int result = (a.getType() == b.getType() && comp.accept(ctx, a, b)) ? 1 : 0;
 		// check if result == cond, then pc++
-		if (result == (cond == 0)) {
+		if (result != cond) {
 			ctx.setPc(ctx.getPc() + 1);
 		}
 	}
