@@ -11,6 +11,7 @@ import me.darknet.lua.vm.VMHelper;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.data.Table;
 import me.darknet.lua.vm.error.Error;
+import me.darknet.lua.vm.error.ErrorHandler;
 import me.darknet.lua.vm.util.ConstantConversion;
 import me.darknet.lua.vm.value.TableValue;
 import me.darknet.lua.vm.value.Type;
@@ -147,8 +148,27 @@ public class ExecutionContext {
 		throw new VMException(this);
 	}
 
+	public int findStackIndex(Value value) {
+		if(!closure.isLuaFunction()) return -1;
+		for (int i = base; i < function.getMaxStackSize(); i++) {
+			if(stack[i] == value) return i - base;
+		}
+		return -1;
+	}
+
+	public void throwTypeError(Value value, String operation) {
+		// first we must find the register this value lives in
+		int index = findStackIndex(value);
+		if(index == -1) { // value not found
+			// fall back to basic type error
+			throwError("attempt to %s a %s value", operation, value.getType().getName());
+		} else {
+			ErrorHandler.throwTypeError(this, index, operation);
+		}
+	}
+
 	public boolean has(int register) {
-		return stack[base + register] != null;
+		return register < (top - base);
 	}
 
 	public Value getRequired(int register) {

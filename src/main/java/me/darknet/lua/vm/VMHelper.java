@@ -256,7 +256,7 @@ public class VMHelper {
 				parent.setRaw(func, cv);
 				cl = cv.getClosure();
 			} else {
-				parent.throwError("attempt to call a nil object");
+				parent.throwTypeError(tm, "call");
 				return null;
 			}
 		}
@@ -347,7 +347,7 @@ public class VMHelper {
 					return;
 				}
 			} else if ((tm = attemptFindMetaobject(value, "__index")).isNil()) {
-				ctx.throwError("attempt to index a " + value.getType().getName() + " value");
+				ctx.throwTypeError(value, "index");
 			}
 			if (tm.getType() == Type.FUNCTION) {
 				ctx.getHelper().callMetamethod(ctx, register, tm, value, indexValue); // call it
@@ -390,7 +390,7 @@ public class VMHelper {
 					return;
 				}
 			} else if ((tm = attemptFindMetaobject(value, "__newindex")).isNil()) {
-				ctx.throwError("attempt to index a " + tm.getType().getName() + " value");
+				ctx.throwTypeError(value, "index");
 			}
 			if (tm.getType() == Type.FUNCTION) {
 				ctx.getHelper().callMetamethod(ctx, tm, value, indexValue, newValue); // call it
@@ -412,7 +412,7 @@ public class VMHelper {
 		switch (key.getType()) {
 			case STRING -> table.set(key.asString(), newValue);
 			case NUMBER -> table.set((int) key.asNumber() - 1, newValue); // -1 because Lua arrays are 1-based
-			default -> ctx.throwError("attempt to index a " + key.getType().getName() + " value");
+			default -> ctx.throwTypeError(key, "index");
 		}
 	}
 
@@ -443,11 +443,11 @@ public class VMHelper {
 				Value tm = attemptFindMetaobject(a, "__lt");
 				Value tm2 = attemptFindMetaobject(b, "__lt");
 				if (tm.isNil()) {
-					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
+					ctx.throwTypeError(a, "compare");
 					yield false;
 				}
 				if (tm != tm2) {
-					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
+					ctx.throwTypeError(b, "compare");
 					yield false;
 				}
 				ctx.getHelper().callMetamethod(ctx, ctx.getTop(), tm, a, b); // call it
@@ -476,11 +476,11 @@ public class VMHelper {
 				Value tm = attemptFindMetaobject(a, "__le");
 				Value tm2 = attemptFindMetaobject(b, "__le");
 				if (tm.isNil()) {
-					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
+					ctx.throwTypeError(a, "compare");
 					yield false;
 				}
 				if (tm != tm2) {
-					ctx.throwError("attempt to compare a " + a.getType().getName() + " value");
+					ctx.throwTypeError(b, "compare");
 					yield false;
 				}
 				callMetamethod(ctx, ctx.getTop(), tm, a, b); // call it
