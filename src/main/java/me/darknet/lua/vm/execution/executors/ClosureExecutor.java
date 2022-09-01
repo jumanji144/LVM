@@ -8,7 +8,9 @@ import me.darknet.lua.file.instructions.MoveInstruction;
 import me.darknet.lua.vm.data.Closure;
 import me.darknet.lua.vm.execution.ExecutionContext;
 import me.darknet.lua.vm.execution.Executor;
+import me.darknet.lua.vm.util.ValueUtil;
 import me.darknet.lua.vm.value.ClosureValue;
+import me.darknet.lua.vm.value.Value;
 
 public class ClosureExecutor implements Executor<ClosureInstruction> {
 	@Override
@@ -25,13 +27,17 @@ public class ClosureExecutor implements Executor<ClosureInstruction> {
 		for (int i = 0; i < numUps; i++) {
 			// get next instruction
 			Instruction next = ctx.nextInstruction();
+			Value toCopy;
 			if (next instanceof GetUpvalueInstruction gi) {
-				cl.setUpvalue(i, ctx.getClosure().getUpvalue(gi.getUpvalue()));
+				toCopy = ctx.getClosure().getUpvalue(gi.getUpvalue());
 			} else if (next instanceof MoveInstruction mi) {
-				cl.setUpvalue(i, ctx.get(mi.getFrom()));
+				toCopy = ctx.get(mi.getFrom());
 			} else {
 				throw new IllegalStateException("Unexpected instruction: " + next);
 			}
+			// now we need to copy the value to avoid external changes to the value
+			cl.setUpvalue(i, ValueUtil.clone(toCopy));
+
 		}
 		ctx.setPc(ctx.getPc() - 1);
 	}

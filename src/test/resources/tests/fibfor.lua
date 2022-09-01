@@ -10,4 +10,4 @@ function generatefib (n)
   end)
 end
 
-for i in generatefib(1000) do print(i) end
+for i in generatefib(24) do print(i) end
