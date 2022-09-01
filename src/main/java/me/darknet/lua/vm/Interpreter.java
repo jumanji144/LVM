@@ -38,7 +38,12 @@ public class Interpreter implements Opcodes {
 			if (inst.getCondition() != 0) ctx.setPc(ctx.getPc() + 1);
 			ctx.set(inst.getRegister(), BooleanValue.valueOf(inst.getValue()));
 		});
-		install(LOADNIL, (Executor<LoadInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), NilValue.NIL));
+		install(LOADNIL, (Executor<LoadInstruction>) (inst, ctx) -> {
+			int target = inst.getTarget();
+			do {
+				ctx.set(target--, NilValue.NIL);
+			} while (target >= inst.getRegister());
+		});
 		install(NEWTABLE, (Executor<NewTableInstruction>) (inst, ctx) -> ctx.set(inst.getRegister(), new TableValue(new Table())));
 		install(GETTABLE, new GetTableExecutor());
 		install(SETTABLE, new SetTableExecutor());
