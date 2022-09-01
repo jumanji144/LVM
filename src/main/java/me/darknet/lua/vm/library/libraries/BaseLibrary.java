@@ -450,4 +450,9 @@ public class BaseLibrary extends Library {
 		return 1;
 	}
 
+	public int co_running(ExecutionContext ctx) {
+		ctx.push(new ThreadValue(ctx));
+		return 1;
+	}
+
 }
